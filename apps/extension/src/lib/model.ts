@@ -1,7 +1,7 @@
 /**
  * Prompt API / Gemini Nano — availability and one-shot prompts.
  */
-import { MODEL_LANG_OPTIONS } from './modelOptions.js';
+import { MODEL_LANG_OPTIONS, MODEL_LANG_OPTIONS_EN } from './modelOptions.js';
 
 export type ModelUiState =
   | 'checking'
@@ -20,6 +20,8 @@ type Session = {
   destroy?: () => void;
 };
 
+type LangOptions = typeof MODEL_LANG_OPTIONS | typeof MODEL_LANG_OPTIONS_EN;
+
 type CreateOptions = {
   monitor?: (m: {
     addEventListener: (type: 'downloadprogress', fn: (e: { loaded: number }) => void) => void;
@@ -30,9 +32,11 @@ type CreateOptions = {
 };
 
 type LanguageModelGlobal = {
-  availability?: (options?: typeof MODEL_LANG_OPTIONS) => Promise<string>;
-  create?: (options?: CreateOptions) => Promise<Session>;
+  availability?: (options?: LangOptions) => Promise<string>;
+  create?: (options?: CreateOptions & LangOptions) => Promise<Session>;
 };
+
+let activeLangOptions: LangOptions = MODEL_LANG_OPTIONS;
 
 function languageModelGlobal(): LanguageModelGlobal | undefined {
   return (globalThis as unknown as { LanguageModel?: LanguageModelGlobal }).LanguageModel;
@@ -67,7 +71,7 @@ function buildMonitor(onProgress?: DownloadProgressHandler) {
 }
 
 async function createSession(options: CreateOptions = {}): Promise<Session> {
-  const merged = { ...MODEL_LANG_OPTIONS, ...options };
+  const merged = { ...activeLangOptions, ...options };
   const LM = languageModelGlobal();
   if (LM?.create) return LM.create(merged);
 
@@ -81,11 +85,15 @@ export function hasLanguageModelApi(): boolean {
   return Boolean(languageModelGlobal()?.availability ?? aiLanguageModelFactory()?.capabilities);
 }
 
-export async function queryAvailability(): Promise<AvailabilityKind> {
+async function availabilityWith(options?: LangOptions): Promise<AvailabilityKind> {
   const LM = languageModelGlobal();
   if (LM?.availability) {
-    const status = await LM.availability(MODEL_LANG_OPTIONS);
-    return mapLanguageModelStatus(status);
+    try {
+      const status = await LM.availability(options);
+      return mapLanguageModelStatus(status);
+    } catch {
+      return 'unavailable';
+    }
   }
 
   const factory = aiLanguageModelFactory();
@@ -95,6 +103,29 @@ export async function queryAvailability(): Promise<AvailabilityKind> {
   }
 
   return 'unavailable';
+}
+
+/**
+ * Probe availability with en/es first, then en-only, then bare call.
+ * UI may still be PT/FR/DE; interpretation language is prompted in text.
+ */
+export async function queryAvailability(): Promise<AvailabilityKind> {
+  const attempts: Array<LangOptions | undefined> = [
+    MODEL_LANG_OPTIONS,
+    MODEL_LANG_OPTIONS_EN,
+    undefined,
+  ];
+
+  let best: AvailabilityKind = 'unavailable';
+  for (const opts of attempts) {
+    const status = await availabilityWith(opts);
+    if (status === 'available' || status === 'downloadable' || status === 'downloading') {
+      activeLangOptions = opts ?? MODEL_LANG_OPTIONS_EN;
+      return status;
+    }
+    best = status;
+  }
+  return best;
 }
 
 export async function warmUpModel(onProgress?: DownloadProgressHandler): Promise<void> {

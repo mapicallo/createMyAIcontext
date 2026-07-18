@@ -107,4 +107,11 @@ export const de: Messages = {
   interpLoadedPack: 'Pack geladen',
   interpLoadedLib: 'Aus Bibliothek geladen',
   busyWorking: 'Verarbeitung auf Ihrem Gerät…',
+  reqTitle: 'Typische Voraussetzungen',
+  reqChrome: 'Chrome 138+ (Desktop) mit verfügbarem Gemini Nano',
+  reqRam: 'Ca. 16 GB RAM (oder GPU mit mehr als 4 GB VRAM)',
+  reqStorage: 'Genug freier Speicher für das Modell (~22 GB auf dem Chrome-Profilvolume)',
+  reqFlags: 'Dev: #prompt-api-for-gemini-nano in chrome://flags aktivieren und Chrome neu starten',
+  reqAiSettings: 'Unter chrome://settings nach „KI“ / On-Device-Modell suchen und Download abschließen',
+  docsLink: 'Chrome Prompt-API-Dokumentation',
 };

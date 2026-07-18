@@ -13,7 +13,7 @@ export const en: Messages = {
   stateDownloadingDetail: 'Keep this window open until the download finishes.',
   stateUnavailable: 'Chrome AI unavailable',
   stateUnavailableDetail:
-    'Requires Chrome 138+ desktop with Gemini Nano. Enable on-device AI in chrome://settings if needed.',
+    'This Chrome/device setup cannot run Gemini Nano yet. Check the list below, then Retry.',
   stateNoApi: 'Prompt API not found',
   stateNoApiDetail: 'This build of Chrome does not expose the language model API.',
   retry: 'Retry',
@@ -107,4 +107,11 @@ export const en: Messages = {
   interpLoadedPack: 'Loaded pack file',
   interpLoadedLib: 'Loaded from library',
   busyWorking: 'Working on your device…',
+  reqTitle: 'Typical requirements',
+  reqChrome: 'Chrome 138+ (desktop) — you appear to need Gemini Nano enabled',
+  reqRam: 'About 16 GB RAM (or a GPU with more than 4 GB VRAM)',
+  reqStorage: 'Enough free disk for the on-device model (~22 GB on the Chrome profile volume)',
+  reqFlags: 'Dev: enable #prompt-api-for-gemini-nano (and related) in chrome://flags, then relaunch',
+  reqAiSettings: 'In chrome://settings search “AI” / on-device model and finish any download',
+  docsLink: 'Chrome Prompt API docs',
 };

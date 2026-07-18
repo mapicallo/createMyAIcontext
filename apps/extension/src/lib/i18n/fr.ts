@@ -107,4 +107,11 @@ export const fr: Messages = {
   interpLoadedPack: 'Pack chargé',
   interpLoadedLib: 'Chargé depuis la bibliothèque',
   busyWorking: 'Traitement sur votre appareil…',
+  reqTitle: 'Exigences habituelles',
+  reqChrome: 'Chrome 138+ (bureau) avec Gemini Nano disponible',
+  reqRam: 'Environ 16 Go de RAM (ou GPU avec plus de 4 Go de VRAM)',
+  reqStorage: 'Espace disque suffisant pour le modèle (~22 Go sur le volume du profil Chrome)',
+  reqFlags: 'Dev : activez #prompt-api-for-gemini-nano dans chrome://flags puis relancez Chrome',
+  reqAiSettings: 'Dans chrome://settings cherchez « IA » / modèle sur l’appareil et terminez le téléchargement',
+  docsLink: 'Documentation Prompt API Chrome',
 };

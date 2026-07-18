@@ -105,7 +105,14 @@ export type MessageKey =
   | 'interpHistory'
   | 'interpLoadedPack'
   | 'interpLoadedLib'
-  | 'busyWorking';
+  | 'busyWorking'
+  | 'reqTitle'
+  | 'reqChrome'
+  | 'reqRam'
+  | 'reqStorage'
+  | 'reqFlags'
+  | 'reqAiSettings'
+  | 'docsLink';
 
 export type Messages = Record<MessageKey, string>;
 

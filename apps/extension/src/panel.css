@@ -124,6 +124,28 @@ h1 {
   color: var(--muted);
 }
 
+.requirements {
+  margin: 0.85rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.requirements .req-heading {
+  list-style: none;
+  margin-left: -1.1rem;
+  font-weight: 650;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.docs-link {
+  display: inline-block;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
 .spinner {
   width: 1.1rem;
   height: 1.1rem;

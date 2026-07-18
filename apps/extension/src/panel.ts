@@ -101,6 +101,8 @@ const refineBtn = document.getElementById('refine-btn') as HTMLButtonElement;
 const refineCancelBtn = document.getElementById('refine-cancel-btn') as HTMLButtonElement;
 const interpBuildBtn = document.getElementById('interp-build-btn') as HTMLButtonElement;
 const busyStrip = document.getElementById('busy-strip')!;
+const requirements = document.getElementById('requirements')!;
+const docsLink = document.getElementById('docs-link') as HTMLAnchorElement;
 
 function setBusy(on: boolean): void {
   busyStrip.hidden = !on;
@@ -141,6 +143,9 @@ function setUiState(state: ModelUiState): void {
   progressWrap.hidden = state !== 'downloading';
   retryBtn.hidden = state !== 'unavailable' && state !== 'no-api';
   statusDetail.hidden = state === 'ready';
+  const showHelp = state === 'unavailable' || state === 'no-api';
+  requirements.hidden = !showHelp;
+  docsLink.hidden = !showHelp;
 }
 
 function setStatus(titleKey: MessageKey, detailKey: MessageKey): void {

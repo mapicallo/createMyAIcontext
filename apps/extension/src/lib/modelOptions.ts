@@ -1,7 +1,13 @@
-/** Shared Prompt API language options. */
+/** Shared Prompt API language options — keep aligned with LocalChat (model capability). */
 export const MODEL_LANG_OPTIONS = {
-  expectedInputs: [{ type: 'text' as const, languages: ['en', 'es', 'pt', 'fr', 'de'] as string[] }],
-  expectedOutputs: [{ type: 'text' as const, languages: ['en', 'es', 'pt', 'fr', 'de'] as string[] }],
+  expectedInputs: [{ type: 'text' as const, languages: ['en', 'es'] as string[] }],
+  expectedOutputs: [{ type: 'text' as const, languages: ['en', 'es'] as string[] }],
+};
+
+/** Fallback if multi-language declaration returns unavailable. */
+export const MODEL_LANG_OPTIONS_EN = {
+  expectedInputs: [{ type: 'text' as const, languages: ['en'] as string[] }],
+  expectedOutputs: [{ type: 'text' as const, languages: ['en'] as string[] }],
 };
 
 /** Practical limit for a single compile pass on-device. */
