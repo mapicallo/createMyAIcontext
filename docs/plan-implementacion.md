@@ -281,27 +281,27 @@ Fase 3 añade: **Interpretation** (prosa) → chat corto de ajuste → Resultado
 
 ### Ahora (setup)
 
-- [ ] `git init` en `C:\code_createMyAIcontext`  
-- [ ] Commit inicial con este plan + README stub  
-- [ ] `git remote add origin https://github.com/mapicallo/createMyAIcontext.git`  
-- [ ] Push `main`  
+- [x] `git init` en `C:\code_createMyAIcontext`  
+- [x] Commit inicial con este plan + README stub  
+- [x] `git remote add origin https://github.com/mapicallo/createMyAIcontext.git`  
+- [x] Push `main` (`11151d0` — v0.0.1)  
 - [ ] Abrir el folder como workspace Cursor  
 
 ### Sprint A — Fase 0 + esqueleto Fase 1
 
-- [ ] Scaffold extensión TS + Vite  
-- [ ] Manifest, iconos, panel home  
-- [ ] `model.ts` + capability check  
-- [ ] Schema `aicontext` v1 + export download  
-- [ ] Compile from text (sin PDF aún) end-to-end  
+- [x] Scaffold extensión TS + Vite  
+- [x] Manifest, iconos, panel home  
+- [x] `model.ts` + capability check  
+- [x] Schema `aicontext` v1 + export download  
+- [x] Compile from text (sin PDF aún) end-to-end  
 
 ### Sprint B — Completar v0.1.0
 
-- [ ] PDF extract  
-- [ ] Campos título/objetivo/restricciones  
+- [ ] PDF extract (+ TXT/MD)  
+- [x] Campos título/objetivo/restricciones  
 - [ ] Biblioteca local mínima  
-- [ ] i18n ES/EN  
-- [ ] privacy + CHROME_WEB_STORE.md + pack ZIP  
+- [x] i18n ES/EN  
+- [x] privacy + CHROME_WEB_STORE.md + pack ZIP  
 - [ ] Envío CWS  
 
 ### Después
