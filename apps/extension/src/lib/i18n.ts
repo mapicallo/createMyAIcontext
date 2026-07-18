@@ -40,7 +40,8 @@ export type MessageKey =
   | 'fromTextDesc'
   | 'fromFile'
   | 'fromFileDesc'
-  | 'mergeSoon'
+  | 'mergePacks'
+  | 'mergePacksDesc'
   | 'interpretSoon'
   | 'libraryTitle'
   | 'libraryEmpty'
@@ -59,8 +60,17 @@ export type MessageKey =
   | 'fieldFileHint'
   | 'fileSelected'
   | 'fileReading'
+  | 'fieldPriority'
+  | 'fieldPriorityPh'
+  | 'mergeSelect'
+  | 'mergeSelectHint'
+  | 'mergeImport'
+  | 'mergeImported'
+  | 'mergeEmptyLib'
   | 'compile'
   | 'compiling'
+  | 'mergeAction'
+  | 'merging'
   | 'cancel'
   | 'resultTitle'
   | 'copyPrompt'
@@ -73,7 +83,9 @@ export type MessageKey =
   | 'tabFacts'
   | 'truncated'
   | 'fileTruncated'
+  | 'mergeTruncated'
   | 'missingQ'
+  | 'warningsTitle'
   | 'errorEmpty'
   | 'errorNoFile'
   | 'errorModel'
@@ -83,6 +95,9 @@ export type MessageKey =
   | 'errorEmptyFile'
   | 'errorPdf'
   | 'errorRead'
+  | 'errorNeedTwo'
+  | 'errorTooMany'
+  | 'errorInvalidPack'
   | 'copied'
   | 'statsInput'
   | 'statsOutput'
@@ -111,7 +126,8 @@ const en: Record<MessageKey, string> = {
   fromTextDesc: 'Paste notes and compile an efficient English context pack.',
   fromFile: 'From file',
   fromFileDesc: 'Upload TXT, MD, or PDF and compile a portable context pack.',
-  mergeSoon: 'Merge packs — soon',
+  mergePacks: 'Merge packs',
+  mergePacksDesc: 'Combine 2–5 saved or imported packs into one efficient context.',
   interpretSoon: 'Interpret & refine — soon',
   libraryTitle: 'Saved packs',
   libraryEmpty: 'No packs saved yet. Compile one and tap Save to library.',
@@ -130,8 +146,17 @@ const en: Record<MessageKey, string> = {
   fieldFileHint: 'Accepted: .txt, .md, .pdf (and other plain text)',
   fileSelected: 'Selected',
   fileReading: 'Reading file…',
+  fieldPriority: 'Conflict priority (optional)',
+  fieldPriorityPh: 'e.g. If work and family conflict, prioritize work',
+  mergeSelect: 'Packs to merge',
+  mergeSelectHint: 'Select 2–5 packs from your library and/or import .aicontext.json files.',
+  mergeImport: 'Import .aicontext.json',
+  mergeImported: 'Imported',
+  mergeEmptyLib: 'Library is empty — import packs or create some first.',
   compile: 'Create context pack',
   compiling: 'Compiling…',
+  mergeAction: 'Merge into one pack',
+  merging: 'Merging…',
   cancel: 'Cancel',
   resultTitle: 'Your context pack',
   copyPrompt: 'Copy prompt block',
@@ -144,7 +169,9 @@ const en: Record<MessageKey, string> = {
   tabFacts: 'Facts',
   truncated: 'Source was truncated to fit the on-device model limit.',
   fileTruncated: 'File text was truncated before compiling.',
+  mergeTruncated: 'Merged input was truncated to fit the on-device model limit.',
   missingQ: 'Suggested questions to improve this pack',
+  warningsTitle: 'Merge notes',
   errorEmpty: 'Please paste some source text.',
   errorNoFile: 'Please choose a file first.',
   errorModel: 'The model did not return a usable pack. Try shorter text or clearer objective.',
@@ -154,6 +181,9 @@ const en: Record<MessageKey, string> = {
   errorEmptyFile: 'No text could be extracted from this file.',
   errorPdf: 'Could not read this PDF.',
   errorRead: 'Could not read this file.',
+  errorNeedTwo: 'Select at least 2 packs to merge.',
+  errorTooMany: 'You can merge at most 5 packs.',
+  errorInvalidPack: 'That file is not a valid .aicontext.json pack.',
   copied: 'Copied',
   statsInput: 'Input',
   statsOutput: 'Output',
@@ -183,7 +213,8 @@ const es: Record<MessageKey, string> = {
   fromTextDesc: 'Pega notas y genera un pack de contexto eficiente en inglés.',
   fromFile: 'Desde archivo',
   fromFileDesc: 'Sube TXT, MD o PDF y genera un pack de contexto portable.',
-  mergeSoon: 'Fusionar packs — pronto',
+  mergePacks: 'Fusionar packs',
+  mergePacksDesc: 'Combina 2–5 packs guardados o importados en un solo contexto eficiente.',
   interpretSoon: 'Interpretar y ajustar — pronto',
   libraryTitle: 'Packs guardados',
   libraryEmpty: 'Aún no hay packs. Compila uno y pulsa Guardar en biblioteca.',
@@ -202,8 +233,17 @@ const es: Record<MessageKey, string> = {
   fieldFileHint: 'Aceptados: .txt, .md, .pdf (y otro texto plano)',
   fileSelected: 'Seleccionado',
   fileReading: 'Leyendo archivo…',
+  fieldPriority: 'Prioridad ante conflictos (opcional)',
+  fieldPriorityPh: 'p. ej. Si chocan trabajo y familia, prioriza trabajo',
+  mergeSelect: 'Packs a fusionar',
+  mergeSelectHint: 'Elige 2–5 packs de la biblioteca y/o importa archivos .aicontext.json.',
+  mergeImport: 'Importar .aicontext.json',
+  mergeImported: 'Importado',
+  mergeEmptyLib: 'La biblioteca está vacía — importa packs o crea algunos antes.',
   compile: 'Crear pack de contexto',
   compiling: 'Compilando…',
+  mergeAction: 'Fusionar en un pack',
+  merging: 'Fusionando…',
   cancel: 'Cancelar',
   resultTitle: 'Tu pack de contexto',
   copyPrompt: 'Copiar bloque prompt',
@@ -216,7 +256,9 @@ const es: Record<MessageKey, string> = {
   tabFacts: 'Hechos',
   truncated: 'El texto se truncó para el límite del modelo en el dispositivo.',
   fileTruncated: 'El texto del archivo se truncó antes de compilar.',
+  mergeTruncated: 'La entrada fusionada se truncó para el límite del modelo.',
   missingQ: 'Preguntas sugeridas para mejorar este pack',
+  warningsTitle: 'Notas del merge',
   errorEmpty: 'Pega algún texto fuente.',
   errorNoFile: 'Elige un archivo primero.',
   errorModel: 'El modelo no devolvió un pack usable. Prueba un texto más corto o un objetivo más claro.',
@@ -226,6 +268,9 @@ const es: Record<MessageKey, string> = {
   errorEmptyFile: 'No se pudo extraer texto de este archivo.',
   errorPdf: 'No se pudo leer este PDF.',
   errorRead: 'No se pudo leer este archivo.',
+  errorNeedTwo: 'Selecciona al menos 2 packs para fusionar.',
+  errorTooMany: 'Puedes fusionar como máximo 5 packs.',
+  errorInvalidPack: 'Ese archivo no es un pack .aicontext.json válido.',
   copied: 'Copiado',
   statsInput: 'Entrada',
   statsOutput: 'Salida',

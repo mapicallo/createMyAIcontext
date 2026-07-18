@@ -1,6 +1,6 @@
 import './panel.css';
 import { compileFromText } from './lib/compile.js';
-import { copyText, downloadPack } from './lib/exportImport.js';
+import { copyText, downloadPack, readPackFromFile } from './lib/exportImport.js';
 import {
   extractDocumentText,
   titleFromFileName,
@@ -21,6 +21,7 @@ import {
   saveToLibrary,
   type LibraryEntry,
 } from './lib/library.js';
+import { MAX_MERGE_PACKS, mergePacks } from './lib/merge.js';
 import {
   hasLanguageModelApi,
   queryAvailability,
@@ -29,7 +30,7 @@ import {
 } from './lib/model.js';
 import type { AiContextPack } from './lib/schema.js';
 
-const APP_VERSION = '0.1.0';
+const APP_VERSION = '0.2.0';
 
 const statusSection = document.getElementById('model-status') as HTMLElement;
 const statusTitle = document.getElementById('status-title')!;
@@ -40,15 +41,21 @@ const retryBtn = document.getElementById('retry-btn') as HTMLButtonElement;
 const main = document.getElementById('main')!;
 const viewHome = document.getElementById('view-home')!;
 const viewCompile = document.getElementById('view-compile')!;
+const viewMerge = document.getElementById('view-merge')!;
 const viewResult = document.getElementById('view-result')!;
 const formError = document.getElementById('form-error')!;
+const mergeError = document.getElementById('merge-error')!;
 const compileBtn = document.getElementById('compile-btn') as HTMLButtonElement;
 const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+const mergeBtn = document.getElementById('merge-btn') as HTMLButtonElement;
+const mergeCancelBtn = document.getElementById('merge-cancel-btn') as HTMLButtonElement;
 const resultBody = document.getElementById('result-body')!;
 const truncNote = document.getElementById('trunc-note')!;
 const statsEl = document.getElementById('stats')!;
 const missingWrap = document.getElementById('missing-wrap')!;
 const missingList = document.getElementById('missing-list')!;
+const warningsWrap = document.getElementById('warnings-wrap')!;
+const warningsList = document.getElementById('warnings-list')!;
 const copyToast = document.getElementById('copy-toast')!;
 const localeSelect = document.getElementById('locale-select') as HTMLSelectElement;
 const versionStrip = document.getElementById('version-strip')!;
@@ -61,17 +68,34 @@ const fileStatus = document.getElementById('file-status')!;
 const libraryEmpty = document.getElementById('library-empty')!;
 const libraryList = document.getElementById('library-list')!;
 const saveLibBtn = document.getElementById('save-lib-btn') as HTMLButtonElement;
+const mergePackList = document.getElementById('merge-pack-list')!;
+const mergeEmpty = document.getElementById('merge-empty')!;
+const mergeImport = document.getElementById('merge-import') as HTMLInputElement;
+const mergeImportStatus = document.getElementById('merge-import-status')!;
+const mergeTitle = document.getElementById('merge-title') as HTMLInputElement;
 
 type CompileMode = 'text' | 'file';
+type ResultOrigin = 'compile' | 'merge' | 'library';
+
+type MergeCandidate = {
+  id: string;
+  title: string;
+  pack: AiContextPack;
+  source: 'library' | 'import';
+};
 
 let compileMode: CompileMode = 'text';
+let resultOrigin: ResultOrigin = 'compile';
 let currentPack: AiContextPack | null = null;
+let currentWarnings: string[] = [];
 let fileSourceText = '';
 let fileExtractTruncated = false;
 let resultTab: 'prompt' | 'json' | 'facts' = 'prompt';
 let abort: AbortController | null = null;
 let runningAvail = false;
-let lastTruncKind: 'model' | 'file' | 'both' | null = null;
+let lastTruncKind: 'model' | 'file' | 'merge' | 'both' | null = null;
+let mergeCandidates: MergeCandidate[] = [];
+let selectedMergeIds = new Set<string>();
 
 function setUiState(state: ModelUiState): void {
   statusSection.setAttribute('data-state', state);
@@ -86,11 +110,13 @@ function setStatus(titleKey: MessageKey, detailKey: MessageKey): void {
   statusDetail.textContent = t(detailKey);
 }
 
-function showView(which: 'home' | 'compile' | 'result'): void {
+function showView(which: 'home' | 'compile' | 'merge' | 'result'): void {
   viewHome.hidden = which !== 'home';
   viewCompile.hidden = which !== 'compile';
+  viewMerge.hidden = which !== 'merge';
   viewResult.hidden = which !== 'result';
   if (which === 'home') void refreshLibrary();
+  if (which === 'merge') void prepareMergeView();
 }
 
 function setProgress(ratio: number): void {
@@ -104,9 +130,6 @@ function setCompileMode(mode: CompileMode): void {
   sourceTextWrap.hidden = mode !== 'text';
   sourceFileWrap.hidden = mode !== 'file';
   formError.hidden = true;
-  if (mode === 'text') {
-    fieldSource.focus();
-  }
 }
 
 function extractErrorKey(error: ExtractFailure): MessageKey {
@@ -197,6 +220,9 @@ function renderResult(): void {
   } else if (lastTruncKind === 'file') {
     truncNote.hidden = false;
     truncNote.textContent = t('fileTruncated');
+  } else if (lastTruncKind === 'merge') {
+    truncNote.hidden = false;
+    truncNote.textContent = t('mergeTruncated');
   } else if (lastTruncKind === 'model') {
     truncNote.hidden = false;
     truncNote.textContent = t('truncated');
@@ -211,6 +237,14 @@ function renderResult(): void {
   } else {
     missingWrap.hidden = true;
     missingList.innerHTML = '';
+  }
+
+  if (currentWarnings.length) {
+    warningsWrap.hidden = false;
+    warningsList.innerHTML = currentWarnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('');
+  } else {
+    warningsWrap.hidden = true;
+    warningsList.innerHTML = '';
   }
 
   saveLibBtn.disabled = false;
@@ -262,13 +296,54 @@ async function refreshLibrary(): Promise<void> {
 
 function openLibraryEntry(entry: LibraryEntry): void {
   currentPack = entry.pack;
+  currentWarnings = [];
   lastTruncKind = null;
+  resultOrigin = 'library';
   resultTab = 'prompt';
   document.querySelectorAll('.tab').forEach((el) => {
     el.classList.toggle('active', el.getAttribute('data-tab') === 'prompt');
   });
   renderResult();
   showView('result');
+}
+
+function renderMergeCandidates(): void {
+  mergeEmpty.hidden = mergeCandidates.length > 0;
+
+  mergePackList.innerHTML = mergeCandidates
+    .map((c) => {
+      const checked = selectedMergeIds.has(c.id) ? 'checked' : '';
+      const badge = c.source === 'import' ? ` · ${t('mergeImported')}` : '';
+      return `
+        <li class="merge-item">
+          <label>
+            <input type="checkbox" data-merge-id="${escapeHtml(c.id)}" ${checked} />
+            <span>
+              <strong>${escapeHtml(c.title)}</strong>
+              <small>${escapeHtml(c.pack.meta.objective || '')}${badge}</small>
+            </span>
+          </label>
+        </li>`;
+    })
+    .join('');
+}
+
+async function prepareMergeView(): Promise<void> {
+  const entries = await listLibrary();
+  const imported = mergeCandidates.filter((c) => c.source === 'import');
+  mergeCandidates = [
+    ...entries.map((e) => ({
+      id: e.id,
+      title: e.title,
+      pack: e.pack,
+      source: 'library' as const,
+    })),
+    ...imported,
+  ];
+  selectedMergeIds = new Set([...selectedMergeIds].filter((id) => mergeCandidates.some((c) => c.id === id)));
+  mergeError.hidden = true;
+  mergeImportStatus.hidden = true;
+  renderMergeCandidates();
 }
 
 async function onCompile(ev: Event): Promise<void> {
@@ -317,6 +392,8 @@ async function onCompile(ev: Event): Promise<void> {
       abort.signal,
     );
     currentPack = pack;
+    currentWarnings = [];
+    resultOrigin = 'compile';
     if (extractTrunc && truncated) lastTruncKind = 'both';
     else if (extractTrunc) lastTruncKind = 'file';
     else if (truncated) lastTruncKind = 'model';
@@ -339,6 +416,68 @@ async function onCompile(ev: Event): Promise<void> {
     compileBtn.disabled = false;
     compileBtn.textContent = t('compile');
     cancelBtn.hidden = true;
+    abort = null;
+  }
+}
+
+async function onMerge(ev: Event): Promise<void> {
+  ev.preventDefault();
+  mergeError.hidden = true;
+
+  const selected = mergeCandidates.filter((c) => selectedMergeIds.has(c.id));
+  if (selected.length < 2) {
+    mergeError.hidden = false;
+    mergeError.textContent = t('errorNeedTwo');
+    return;
+  }
+  if (selected.length > MAX_MERGE_PACKS) {
+    mergeError.hidden = false;
+    mergeError.textContent = t('errorTooMany');
+    return;
+  }
+
+  abort?.abort();
+  abort = new AbortController();
+  mergeBtn.disabled = true;
+  mergeBtn.textContent = t('merging');
+  mergeCancelBtn.hidden = false;
+
+  try {
+    const { pack, truncated, warnings } = await mergePacks(
+      {
+        title: mergeTitle.value,
+        objective: (document.getElementById('merge-objective') as HTMLTextAreaElement).value,
+        priorityText: (document.getElementById('merge-priority') as HTMLTextAreaElement).value,
+        constraintsText: (document.getElementById('merge-constraints') as HTMLTextAreaElement).value,
+        packs: selected.map((s) => s.pack),
+        sourceLang: getLocale(),
+        appVersion: APP_VERSION,
+      },
+      abort.signal,
+    );
+    currentPack = pack;
+    currentWarnings = warnings;
+    resultOrigin = 'merge';
+    lastTruncKind = truncated ? 'merge' : null;
+    resultTab = 'prompt';
+    document.querySelectorAll('.tab').forEach((el) => {
+      el.classList.toggle('active', el.getAttribute('data-tab') === 'prompt');
+    });
+    renderResult();
+    showView('result');
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') return;
+    console.error('[CMAC] merge', e);
+    mergeError.hidden = false;
+    const msg = (e as Error)?.message;
+    if (msg === 'NEED_TWO_PACKS') mergeError.textContent = t('errorNeedTwo');
+    else if (msg === 'TOO_MANY_PACKS') mergeError.textContent = t('errorTooMany');
+    else if (msg === 'INVALID_MODEL_JSON' || msg === 'EMPTY_PACK') mergeError.textContent = t('errorModel');
+    else mergeError.textContent = t('errorGeneric');
+  } finally {
+    mergeBtn.disabled = false;
+    mergeBtn.textContent = t('mergeAction');
+    mergeCancelBtn.hidden = true;
     abort = null;
   }
 }
@@ -371,6 +510,40 @@ async function onFilePicked(): Promise<void> {
   }
 }
 
+async function onMergeImport(): Promise<void> {
+  const files = [...(mergeImport.files ?? [])];
+  mergeImport.value = '';
+  if (!files.length) return;
+
+  const added: string[] = [];
+  for (const file of files) {
+    try {
+      const pack = await readPackFromFile(file);
+      const id = `import_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+      mergeCandidates.push({
+        id,
+        title: pack.meta.title || file.name,
+        pack,
+        source: 'import',
+      });
+      selectedMergeIds.add(id);
+      added.push(pack.meta.title || file.name);
+    } catch {
+      mergeError.hidden = false;
+      mergeError.textContent = t('errorInvalidPack');
+    }
+  }
+
+  if (added.length) {
+    mergeImportStatus.hidden = false;
+    mergeImportStatus.textContent = `${t('mergeImported')}: ${added.join(', ')}`;
+    if (!mergeTitle.value.trim() && added.length >= 2) {
+      mergeTitle.value = `Merged — ${added.slice(0, 2).join(' + ')}`;
+    }
+  }
+  renderMergeCandidates();
+}
+
 function bindUi(): void {
   versionStrip.textContent = `v${APP_VERSION}`;
 
@@ -382,16 +555,46 @@ function bindUi(): void {
     setCompileMode('file');
     showView('compile');
   });
+  document.getElementById('btn-merge')!.addEventListener('click', () => showView('merge'));
   document.getElementById('back-home')!.addEventListener('click', () => showView('home'));
-  document.getElementById('back-compile')!.addEventListener('click', () => showView('compile'));
+  document.getElementById('back-home-merge')!.addEventListener('click', () => showView('home'));
+  document.getElementById('back-compile')!.addEventListener('click', () => {
+    if (resultOrigin === 'merge') showView('merge');
+    else if (resultOrigin === 'library') showView('home');
+    else showView('compile');
+  });
   document.getElementById('new-btn')!.addEventListener('click', () => {
     currentPack = null;
-    showView('compile');
+    currentWarnings = [];
+    if (resultOrigin === 'merge') showView('merge');
+    else showView('compile');
   });
 
   document.getElementById('compile-form')!.addEventListener('submit', (e) => void onCompile(e));
+  document.getElementById('merge-form')!.addEventListener('submit', (e) => void onMerge(e));
   cancelBtn.addEventListener('click', () => abort?.abort());
+  mergeCancelBtn.addEventListener('click', () => abort?.abort());
   fieldFile.addEventListener('change', () => void onFilePicked());
+  mergeImport.addEventListener('change', () => void onMergeImport());
+
+  mergePackList.addEventListener('change', (ev) => {
+    const input = ev.target as HTMLInputElement;
+    if (input.type !== 'checkbox') return;
+    const id = input.getAttribute('data-merge-id');
+    if (!id) return;
+    if (input.checked) {
+      if (selectedMergeIds.size >= MAX_MERGE_PACKS && !selectedMergeIds.has(id)) {
+        input.checked = false;
+        mergeError.hidden = false;
+        mergeError.textContent = t('errorTooMany');
+        return;
+      }
+      selectedMergeIds.add(id);
+    } else {
+      selectedMergeIds.delete(id);
+    }
+    mergeError.hidden = true;
+  });
 
   document.querySelectorAll('.tab').forEach((tab) => {
     tab.addEventListener('click', () => {
@@ -465,6 +668,7 @@ function bindUi(): void {
     }
     if (currentPack) renderResult();
     await refreshLibrary();
+    if (!viewMerge.hidden) renderMergeCandidates();
   });
 
   document.getElementById('privacy-link')!.addEventListener('click', (e) => {

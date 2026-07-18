@@ -21,7 +21,7 @@ Why:
 - Keep a portable context across models and threads.
 - Stay private — processing stays on your device.
 
-Coming soon: merge packs, interpret & refine in plain language, more UI languages.
+Coming soon: interpret & refine in plain language, more UI languages.
 
 Requires Chrome desktop with Gemini Nano / Prompt API available.
 

@@ -2,11 +2,15 @@ import { safeParseJson } from './jsonRepair.js';
 import { promptOnce } from './model.js';
 import { truncateForModel } from './modelOptions.js';
 import {
+  asFacts,
+  asStringArray,
+  parseUserConstraints,
+  type ModelCompilePayload,
+} from './parseHelpers.js';
+import {
   finalizePack,
-  type AiContextFact,
   type AiContextPack,
   type CompileInput,
-  type FactWeight,
 } from './schema.js';
 
 const SYSTEM_PROMPT = `You are a context compiler for LLM prompts.
@@ -25,41 +29,6 @@ Rules:
 - narrative: 1–3 dense paragraphs, no ornamental prose.
 - missingQuestions: up to 5 questions if critical gaps remain for the objective; else [].
 - Merge user-provided constraints; do not invent employers, dates, or credentials.`;
-
-type ModelCompilePayload = {
-  constraints?: unknown;
-  facts?: unknown;
-  narrative?: unknown;
-  missingQuestions?: unknown;
-};
-
-function asStringArray(v: unknown): string[] {
-  if (!Array.isArray(v)) return [];
-  return v.filter((x): x is string => typeof x === 'string').map((s) => s.trim()).filter(Boolean);
-}
-
-function asFacts(v: unknown): AiContextFact[] {
-  if (!Array.isArray(v)) return [];
-  const out: AiContextFact[] = [];
-  for (const item of v) {
-    if (!item || typeof item !== 'object') continue;
-    const o = item as Record<string, unknown>;
-    const key = typeof o.key === 'string' ? o.key.trim() : '';
-    const value = typeof o.value === 'string' ? o.value.trim() : '';
-    if (!key || !value) continue;
-    let weight: FactWeight | undefined;
-    if (o.weight === 'high' || o.weight === 'medium' || o.weight === 'low') weight = o.weight;
-    out.push({ key, value, weight });
-  }
-  return out;
-}
-
-function parseUserConstraints(text: string): string[] {
-  return text
-    .split(/\r?\n|;/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 export async function compileFromText(
   input: CompileInput,

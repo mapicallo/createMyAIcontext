@@ -53,7 +53,10 @@
               <span class="card-title" data-i18n="fromFile">From file</span>
               <span class="card-desc" data-i18n="fromFileDesc">Upload TXT, MD, or PDF and compile a portable context pack.</span>
             </button>
-            <p class="soon-line" data-i18n="mergeSoon">Merge packs — soon</p>
+            <button type="button" class="card" id="btn-merge">
+              <span class="card-title" data-i18n="mergePacks">Merge packs</span>
+              <span class="card-desc" data-i18n="mergePacksDesc">Combine 2–5 saved or imported packs into one efficient context.</span>
+            </button>
             <p class="soon-line" data-i18n="interpretSoon">Interpret & refine — soon</p>
           </div>
           <div class="library">
@@ -102,6 +105,44 @@
           </form>
         </section>
 
+        <section id="view-merge" class="view" hidden>
+          <button type="button" class="linkish" id="back-home-merge" data-i18n="back">Back</button>
+          <form id="merge-form" class="form">
+            <label>
+              <span data-i18n="fieldTitle">Context title</span>
+              <input id="merge-title" type="text" maxlength="120" data-i18n-placeholder="fieldTitlePh" />
+            </label>
+            <label>
+              <span data-i18n="fieldObjective">Objective</span>
+              <textarea id="merge-objective" rows="2" maxlength="500" data-i18n-placeholder="fieldObjectivePh"></textarea>
+            </label>
+            <label>
+              <span data-i18n="fieldPriority">Conflict priority (optional)</span>
+              <textarea id="merge-priority" rows="2" maxlength="500" data-i18n-placeholder="fieldPriorityPh"></textarea>
+            </label>
+            <label>
+              <span data-i18n="fieldConstraints">Constraints (optional)</span>
+              <textarea id="merge-constraints" rows="2" maxlength="1000" data-i18n-placeholder="fieldConstraintsPh"></textarea>
+            </label>
+            <div class="merge-select">
+              <strong data-i18n="mergeSelect">Packs to merge</strong>
+              <p class="hint" data-i18n="mergeSelectHint">Select 2–5 packs…</p>
+              <p id="merge-empty" class="note" hidden data-i18n="mergeEmptyLib"></p>
+              <ul id="merge-pack-list" class="merge-pack-list"></ul>
+              <label class="file-label merge-import">
+                <span data-i18n="mergeImport">Import .aicontext.json</span>
+                <input id="merge-import" type="file" accept=".json,application/json" multiple />
+              </label>
+              <p id="merge-import-status" class="note" hidden></p>
+            </div>
+            <p id="merge-error" class="error" hidden></p>
+            <div class="form-actions">
+              <button type="submit" class="btn primary" id="merge-btn" data-i18n="mergeAction">Merge into one pack</button>
+              <button type="button" class="btn secondary" id="merge-cancel-btn" hidden data-i18n="cancel">Cancel</button>
+            </div>
+          </form>
+        </section>
+
         <section id="view-result" class="view" hidden>
           <button type="button" class="linkish" id="back-compile" data-i18n="back">Back</button>
           <h2 data-i18n="resultTitle">Your context pack</h2>
@@ -117,6 +158,10 @@
             <h3 data-i18n="missingQ">Suggested questions</h3>
             <ul id="missing-list"></ul>
           </div>
+          <div id="warnings-wrap" class="missing warnings" hidden>
+            <h3 data-i18n="warningsTitle">Merge notes</h3>
+            <ul id="warnings-list"></ul>
+          </div>
           <div class="form-actions">
             <button type="button" class="btn primary" id="copy-btn" data-i18n="copyPrompt">Copy prompt block</button>
             <button type="button" class="btn secondary" id="download-btn" data-i18n="downloadJson">Download .aicontext.json</button>
@@ -128,7 +173,7 @@
       </main>
 
       <footer class="foot">
-        <span id="version-strip">v0.1.0</span>
+        <span id="version-strip">v0.2.0</span>
       </footer>
     </div>
     <script type="module" src="./src/panel.ts"></script>
