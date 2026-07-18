@@ -308,7 +308,7 @@ Fase 3 añade: **Interpretation** (prosa) → chat corto de ajuste → Resultado
 
 - [x] Fase 2 Merge  
 - [x] Fase 3 Interpret & refine  
-- [ ] Fase 4 i18n/landing  
+- [x] Fase 4 i18n/landing  
 
 ---
 

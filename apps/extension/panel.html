@@ -21,6 +21,9 @@
             <select id="locale-select" aria-label="Language">
               <option value="en">EN</option>
               <option value="es">ES</option>
+              <option value="pt">PT</option>
+              <option value="fr">FR</option>
+              <option value="de">DE</option>
             </select>
           </label>
           <a id="privacy-link" href="#" data-i18n="privacy">Privacy</a>
@@ -39,6 +42,7 @@
           <progress id="download-progress" max="100" value="0">0%</progress>
         </div>
         <button type="button" id="retry-btn" class="btn secondary" hidden data-i18n="retry">Retry</button>
+        <p id="busy-strip" class="busy-strip" hidden data-i18n="busyWorking">Working on your device…</p>
       </section>
 
       <main id="main" hidden>
@@ -239,7 +243,7 @@
       </main>
 
       <footer class="foot">
-        <span id="version-strip">v0.3.0</span>
+        <span id="version-strip">v0.4.0</span>
       </footer>
     </div>
     <script type="module" src="./src/panel.ts"></script>

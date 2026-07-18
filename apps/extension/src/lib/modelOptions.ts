@@ -1,7 +1,7 @@
 /** Shared Prompt API language options. */
 export const MODEL_LANG_OPTIONS = {
-  expectedInputs: [{ type: 'text' as const, languages: ['en', 'es'] as string[] }],
-  expectedOutputs: [{ type: 'text' as const, languages: ['en', 'es'] as string[] }],
+  expectedInputs: [{ type: 'text' as const, languages: ['en', 'es', 'pt', 'fr', 'de'] as string[] }],
+  expectedOutputs: [{ type: 'text' as const, languages: ['en', 'es', 'pt', 'fr', 'de'] as string[] }],
 };
 
 /** Practical limit for a single compile pass on-device. */

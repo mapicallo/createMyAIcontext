@@ -118,8 +118,10 @@ h1 {
   color: var(--muted);
 }
 
-.status[data-state='ready'] {
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+.busy-strip {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .spinner {

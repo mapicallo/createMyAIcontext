@@ -2,16 +2,12 @@ import { promptOnce } from './model.js';
 import { truncateForModel } from './modelOptions.js';
 import { packToMergeSnippet } from './parseHelpers.js';
 import type { AiContextPack } from './schema.js';
-import type { Locale } from './i18n.js';
+import { localeLanguageName, type Locale } from './i18n/index.js';
 
 export type RefineTurn = {
   role: 'user' | 'assistant';
   content: string;
 };
-
-function langName(locale: Locale): string {
-  return locale === 'es' ? 'Spanish' : 'English';
-}
 
 function sourceFromPack(pack: AiContextPack): string {
   return packToMergeSnippet(pack);
@@ -34,7 +30,7 @@ export async function interpretContext(
   const { text, truncated } = truncateForModel(sourceMaterial);
   if (!text) throw new Error('EMPTY_SOURCE');
 
-  const language = langName(locale);
+  const language = localeLanguageName(locale);
   const system = `You explain AI context to humans.
 Given a supposed context (notes, prompt, or structured pack), describe clearly what a typical LLM would understand and assume.
 Write the entire answer in ${language}.
@@ -66,7 +62,7 @@ export async function refineInterpretation(
   if (!instr) throw new Error('EMPTY_INSTRUCTION');
   if (!currentInterpretation.trim()) throw new Error('EMPTY_INTERPRETATION');
 
-  const language = langName(locale);
+  const language = localeLanguageName(locale);
   const system = `You refine plain-language descriptions of AI context.
 The user wants to adjust what the AI should understand.
 Rewrite the FULL updated interpretation in ${language}.

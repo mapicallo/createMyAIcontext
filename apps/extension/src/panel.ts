@@ -10,11 +10,12 @@ import {
   applyStaticTranslations,
   getLocale,
   initI18n,
+  localeBcp47,
   setLocale,
   t,
   type Locale,
   type MessageKey,
-} from './lib/i18n.js';
+} from './lib/i18n/index.js';
 import {
   interpretContext,
   materialFromInput,
@@ -36,7 +37,7 @@ import {
 } from './lib/model.js';
 import type { AiContextPack } from './lib/schema.js';
 
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.4.0';
 
 const statusSection = document.getElementById('model-status') as HTMLElement;
 const statusTitle = document.getElementById('status-title')!;
@@ -99,6 +100,12 @@ const refineError = document.getElementById('refine-error')!;
 const refineBtn = document.getElementById('refine-btn') as HTMLButtonElement;
 const refineCancelBtn = document.getElementById('refine-cancel-btn') as HTMLButtonElement;
 const interpBuildBtn = document.getElementById('interp-build-btn') as HTMLButtonElement;
+const busyStrip = document.getElementById('busy-strip')!;
+
+function setBusy(on: boolean): void {
+  busyStrip.hidden = !on;
+  if (on) busyStrip.textContent = t('busyWorking');
+}
 
 type CompileMode = 'text' | 'file';
 type ResultOrigin = 'compile' | 'merge' | 'library' | 'interpret';
@@ -290,7 +297,7 @@ function escapeHtml(s: string): string {
 
 function formatSavedAt(iso: string): string {
   try {
-    return new Date(iso).toLocaleString(getLocale() === 'es' ? 'es' : 'en', {
+    return new Date(iso).toLocaleString(localeBcp47(getLocale()), {
       dateStyle: 'short',
       timeStyle: 'short',
     });
@@ -475,6 +482,7 @@ async function onCompile(ev: Event): Promise<void> {
 
   abort?.abort();
   abort = new AbortController();
+  setBusy(true);
   compileBtn.disabled = true;
   compileBtn.textContent = t('compiling');
   cancelBtn.hidden = false;
@@ -516,6 +524,7 @@ async function onCompile(ev: Event): Promise<void> {
     compileBtn.disabled = false;
     compileBtn.textContent = t('compile');
     cancelBtn.hidden = true;
+    setBusy(false);
     abort = null;
   }
 }
@@ -538,6 +547,7 @@ async function onMerge(ev: Event): Promise<void> {
 
   abort?.abort();
   abort = new AbortController();
+  setBusy(true);
   mergeBtn.disabled = true;
   mergeBtn.textContent = t('merging');
   mergeCancelBtn.hidden = false;
@@ -578,6 +588,7 @@ async function onMerge(ev: Event): Promise<void> {
     mergeBtn.disabled = false;
     mergeBtn.textContent = t('mergeAction');
     mergeCancelBtn.hidden = true;
+    setBusy(false);
     abort = null;
   }
 }
@@ -598,6 +609,7 @@ async function onInterpret(ev: Event): Promise<void> {
 
   abort?.abort();
   abort = new AbortController();
+  setBusy(true);
   interpBtn.disabled = true;
   interpBtn.textContent = t('interpreting');
   interpCancelBtn.hidden = false;
@@ -617,6 +629,7 @@ async function onInterpret(ev: Event): Promise<void> {
     interpBtn.disabled = false;
     interpBtn.textContent = t('interpAction');
     interpCancelBtn.hidden = true;
+    setBusy(false);
     abort = null;
   }
 }
@@ -634,6 +647,7 @@ async function onRefine(ev: Event): Promise<void> {
 
   abort?.abort();
   abort = new AbortController();
+  setBusy(true);
   refineBtn.disabled = true;
   interpBuildBtn.disabled = true;
   refineBtn.textContent = t('interpRefining');
@@ -665,6 +679,7 @@ async function onRefine(ev: Event): Promise<void> {
     interpBuildBtn.disabled = false;
     refineBtn.textContent = t('interpSend');
     refineCancelBtn.hidden = true;
+    setBusy(false);
     abort = null;
   }
 }
@@ -675,6 +690,7 @@ async function onBuildFromInterpretation(): Promise<void> {
 
   abort?.abort();
   abort = new AbortController();
+  setBusy(true);
   interpBuildBtn.disabled = true;
   refineBtn.disabled = true;
   interpBuildBtn.textContent = t('interpBuilding');
@@ -714,6 +730,7 @@ async function onBuildFromInterpretation(): Promise<void> {
     refineBtn.disabled = false;
     interpBuildBtn.textContent = t('interpBuildPack');
     refineCancelBtn.hidden = true;
+    setBusy(false);
     abort = null;
   }
 }
