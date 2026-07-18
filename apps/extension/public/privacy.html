@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy — Create my AI Context</title>
+    <meta
+      name="description"
+      content="Privacy policy for the Create my AI Context browser extension (on-device context packs)."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <style>
+      :root {
+        --bg: #f0fdfa;
+        --text: #134e4a;
+        --muted: #5b7a76;
+        --accent: #0f766e;
+        --border: #99f6e4;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #042f2e;
+          --text: #ecfdf5;
+          --muted: #99f6e4;
+          --border: #115e59;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+        color: var(--text);
+        background: var(--bg);
+      }
+      .wrap {
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+      header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--border);
+      }
+      h1 {
+        margin: 0 0 0.35rem;
+        font-size: 1.6rem;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      h2 {
+        margin-top: 1.75rem;
+        font-size: 1.15rem;
+      }
+      a {
+        color: var(--accent);
+      }
+      ul {
+        padding-left: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Privacy Policy — Create my AI Context</h1>
+        <p class="muted">Last updated: July 2026 · Version 0.0.1</p>
+      </header>
+
+      <p>
+        <strong>Create my AI Context</strong> is a Chrome extension that helps you turn notes or files into a compact
+        English AI context pack using Chrome’s on-device Gemini Nano (Prompt API).
+      </p>
+
+      <h2>Data we process</h2>
+      <p>
+        Text, titles, objectives, constraints, and generated context packs you enter or create are processed
+        <strong>only on your device</strong>.
+      </p>
+
+      <h2>What we do not do</h2>
+      <ul>
+        <li>We do not upload your source text or packs to AI4Context servers.</li>
+        <li>We do not sell or share your content with third parties.</li>
+        <li>We do not read your browsing history or other tabs (this extension does not request tab-content permissions for that purpose).</li>
+      </ul>
+
+      <h2>Local storage</h2>
+      <p>
+        Preferences (such as UI language) may be stored with <code>chrome.storage.local</code> on your device.
+        You can clear extension data from Chrome’s settings.
+      </p>
+
+      <h2>On-device AI</h2>
+      <p>
+        Model inference uses Chrome’s built-in Prompt API / Gemini Nano when available. That processing stays under
+        Chrome’s on-device AI stack on your machine.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this policy: use the developer contact on the Chrome Web Store listing for
+        <em>Create my AI Context</em>, or the AI4Context site associated with the publisher account.
+      </p>
+    </div>
+  </body>
+</html>

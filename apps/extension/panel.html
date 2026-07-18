@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Create my AI Context</title>
+    <link rel="stylesheet" href="./src/panel.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div class="brand">
+          <img class="brand-icon" src="./icons/icon48.png" alt="" width="28" height="28" />
+          <div>
+            <h1 data-i18n="appName">Create my AI Context</h1>
+            <p class="tagline" data-i18n="tagline">Compact English context packs — on your device</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <label class="locale-label" for="locale-select">
+            <select id="locale-select" aria-label="Language">
+              <option value="en">EN</option>
+              <option value="es">ES</option>
+            </select>
+          </label>
+          <a id="privacy-link" href="#" data-i18n="privacy">Privacy</a>
+        </div>
+      </header>
+
+      <section id="model-status" class="status" data-state="checking" aria-live="polite">
+        <div class="status-row">
+          <span class="spinner" aria-hidden="true"></span>
+          <div>
+            <strong id="status-title" data-i18n="stateChecking">Checking Chrome AI…</strong>
+            <p id="status-detail" data-i18n="stateCheckingDetail">Looking for Gemini Nano (Prompt API).</p>
+          </div>
+        </div>
+        <div id="progress-wrap" hidden>
+          <progress id="download-progress" max="100" value="0">0%</progress>
+        </div>
+        <button type="button" id="retry-btn" class="btn secondary" hidden data-i18n="retry">Retry</button>
+      </section>
+
+      <main id="main" hidden>
+        <section id="view-home" class="view">
+          <h2 data-i18n="homeTitle">What do you want to do?</h2>
+          <div class="cards">
+            <button type="button" class="card" id="btn-from-text">
+              <span class="card-title" data-i18n="fromText">From text</span>
+              <span class="card-desc" data-i18n="fromTextDesc">Paste notes and compile an efficient English context pack.</span>
+            </button>
+            <button type="button" class="card disabled" id="btn-from-file" disabled>
+              <span class="card-title">
+                <span data-i18n="fromFile">From file</span>
+                <span class="badge" data-i18n="fromFileSoon">Soon</span>
+              </span>
+              <span class="card-desc" data-i18n="fromFileDesc">TXT, MD, or PDF — coming in v0.1.0.</span>
+            </button>
+            <p class="soon-line" data-i18n="mergeSoon">Merge packs — soon</p>
+            <p class="soon-line" data-i18n="interpretSoon">Interpret & refine — soon</p>
+          </div>
+        </section>
+
+        <section id="view-compile" class="view" hidden>
+          <button type="button" class="linkish" id="back-home" data-i18n="back">Back</button>
+          <form id="compile-form" class="form">
+            <label>
+              <span data-i18n="fieldTitle">Context title</span>
+              <input id="field-title" type="text" maxlength="120" data-i18n-placeholder="fieldTitlePh" />
+            </label>
+            <label>
+              <span data-i18n="fieldObjective">Objective</span>
+              <textarea id="field-objective" rows="2" maxlength="500" data-i18n-placeholder="fieldObjectivePh"></textarea>
+            </label>
+            <label>
+              <span data-i18n="fieldConstraints">Constraints (optional)</span>
+              <textarea id="field-constraints" rows="2" maxlength="1000" data-i18n-placeholder="fieldConstraintsPh"></textarea>
+            </label>
+            <label>
+              <span data-i18n="fieldSource">Source text</span>
+              <textarea id="field-source" rows="10" required data-i18n-placeholder="fieldSourcePh"></textarea>
+            </label>
+            <p id="form-error" class="error" hidden></p>
+            <div class="form-actions">
+              <button type="submit" class="btn primary" id="compile-btn" data-i18n="compile">Create context pack</button>
+              <button type="button" class="btn secondary" id="cancel-btn" hidden data-i18n="cancel">Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="view-result" class="view" hidden>
+          <button type="button" class="linkish" id="back-compile" data-i18n="back">Back</button>
+          <h2 data-i18n="resultTitle">Your context pack</h2>
+          <p id="trunc-note" class="note" hidden data-i18n="truncated"></p>
+          <div id="stats" class="stats"></div>
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab active" data-tab="prompt" data-i18n="tabPrompt">Prompt</button>
+            <button type="button" class="tab" data-tab="json" data-i18n="tabJson">JSON</button>
+            <button type="button" class="tab" data-tab="facts" data-i18n="tabFacts">Facts</button>
+          </div>
+          <pre id="result-body" class="result-body"></pre>
+          <div id="missing-wrap" class="missing" hidden>
+            <h3 data-i18n="missingQ">Suggested questions</h3>
+            <ul id="missing-list"></ul>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn primary" id="copy-btn" data-i18n="copyPrompt">Copy prompt block</button>
+            <button type="button" class="btn secondary" id="download-btn" data-i18n="downloadJson">Download .aicontext.json</button>
+            <button type="button" class="btn ghost" id="new-btn" data-i18n="newCompile">Create another</button>
+          </div>
+          <p id="copy-toast" class="toast" hidden data-i18n="copied">Copied</p>
+        </section>
+      </main>
+
+      <footer class="foot">
+        <span id="version-strip">v0.0.1</span>
+      </footer>
+    </div>
+    <script type="module" src="./src/panel.ts"></script>
+  </body>
+</html>

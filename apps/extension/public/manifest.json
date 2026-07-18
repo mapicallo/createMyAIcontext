@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Create my AI Context",
+  "version": "0.0.1",
+  "description": "Turn notes into a compact English AI context pack. On-device with Chrome AI—no cloud upload.",
+  "action": {
+    "default_title": "Create my AI Context",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "permissions": ["storage"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
