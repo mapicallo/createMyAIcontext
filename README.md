@@ -13,7 +13,17 @@ Chrome extension that turns natural-language notes or files into a **compact Eng
 | **0.4.0** | Full flows + UI EN/ES/PT/FR/DE + store polish |
 | 0.5.x | Guided templates + LocalChat interop (optional) |
 
-## Develop
+## Load in Chrome (unpacked)
+
+Always use the compiled folder (kept in the repo):
+
+`C:\code_createMyAIcontext\apps\extension\dist`
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode**
+3. **Load unpacked** → select `apps/extension/dist`
+
+After pulling code changes, if `dist` looks stale run:
 
 ```bash
 cd apps/extension
@@ -21,12 +31,16 @@ npm install
 npm run build
 ```
 
-Load `apps/extension/dist` as an unpacked extension in `chrome://extensions`.
+## Develop
 
 ```bash
-npm run pack   # ZIP for Chrome Web Store
+cd apps/extension
+npm install
+npm run build
+# or watch: npm run dev
 ```
 
+Then reload the extension on `chrome://extensions`.
 ## Requirements
 
 - Chrome 138+ desktop with Gemini Nano / Prompt API available

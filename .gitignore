@@ -1,5 +1,4 @@
 node_modules/
-dist/
 *.zip
 releases/
 .DS_Store
@@ -12,3 +11,5 @@ Thumbs.db
 .env.*
 apps/extension/public/icons/*.png
 !apps/extension/public/icons/.gitkeep
+# Keep apps/extension/dist/ tracked so Chrome can load unpacked without a local build.
+apps/extension/dist/**/*.map
