@@ -379,3 +379,87 @@ textarea {
   font-size: 0.75rem;
   color: var(--muted);
 }
+
+.library {
+  margin-top: 1.25rem;
+}
+
+.library h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.library-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.library-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.library-item .meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.library-item .meta strong {
+  display: block;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.library-item .meta small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.library-item .actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.library-item .actions button {
+  font: inherit;
+  font-size: 0.75rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0.25rem 0.45rem;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.file-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+#field-file {
+  font-weight: 400;
+  font-size: 0.85rem;
+}

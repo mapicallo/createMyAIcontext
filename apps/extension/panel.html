@@ -49,15 +49,17 @@
               <span class="card-title" data-i18n="fromText">From text</span>
               <span class="card-desc" data-i18n="fromTextDesc">Paste notes and compile an efficient English context pack.</span>
             </button>
-            <button type="button" class="card disabled" id="btn-from-file" disabled>
-              <span class="card-title">
-                <span data-i18n="fromFile">From file</span>
-                <span class="badge" data-i18n="fromFileSoon">Soon</span>
-              </span>
-              <span class="card-desc" data-i18n="fromFileDesc">TXT, MD, or PDF — coming in v0.1.0.</span>
+            <button type="button" class="card" id="btn-from-file">
+              <span class="card-title" data-i18n="fromFile">From file</span>
+              <span class="card-desc" data-i18n="fromFileDesc">Upload TXT, MD, or PDF and compile a portable context pack.</span>
             </button>
             <p class="soon-line" data-i18n="mergeSoon">Merge packs — soon</p>
             <p class="soon-line" data-i18n="interpretSoon">Interpret & refine — soon</p>
+          </div>
+          <div class="library">
+            <h3 data-i18n="libraryTitle">Saved packs</h3>
+            <p id="library-empty" class="soon-line" data-i18n="libraryEmpty">No packs saved yet.</p>
+            <ul id="library-list" class="library-list" hidden></ul>
           </div>
         </section>
 
@@ -76,10 +78,22 @@
               <span data-i18n="fieldConstraints">Constraints (optional)</span>
               <textarea id="field-constraints" rows="2" maxlength="1000" data-i18n-placeholder="fieldConstraintsPh"></textarea>
             </label>
-            <label>
+            <label id="source-text-wrap">
               <span data-i18n="fieldSource">Source text</span>
-              <textarea id="field-source" rows="10" required data-i18n-placeholder="fieldSourcePh"></textarea>
+              <textarea id="field-source" rows="10" data-i18n-placeholder="fieldSourcePh"></textarea>
             </label>
+            <div id="source-file-wrap" hidden>
+              <label class="file-label">
+                <span data-i18n="fieldFile">Source file</span>
+                <input
+                  id="field-file"
+                  type="file"
+                  accept=".txt,.md,.markdown,.pdf,.csv,.json,.log,.xml,.html,.htm,.yml,.yaml,text/*,application/pdf"
+                />
+              </label>
+              <p class="hint" data-i18n="fieldFileHint">Accepted: .txt, .md, .pdf</p>
+              <p id="file-status" class="note" hidden></p>
+            </div>
             <p id="form-error" class="error" hidden></p>
             <div class="form-actions">
               <button type="submit" class="btn primary" id="compile-btn" data-i18n="compile">Create context pack</button>
@@ -91,7 +105,7 @@
         <section id="view-result" class="view" hidden>
           <button type="button" class="linkish" id="back-compile" data-i18n="back">Back</button>
           <h2 data-i18n="resultTitle">Your context pack</h2>
-          <p id="trunc-note" class="note" hidden data-i18n="truncated"></p>
+          <p id="trunc-note" class="note" hidden></p>
           <div id="stats" class="stats"></div>
           <div class="tabs" role="tablist">
             <button type="button" class="tab active" data-tab="prompt" data-i18n="tabPrompt">Prompt</button>
@@ -106,6 +120,7 @@
           <div class="form-actions">
             <button type="button" class="btn primary" id="copy-btn" data-i18n="copyPrompt">Copy prompt block</button>
             <button type="button" class="btn secondary" id="download-btn" data-i18n="downloadJson">Download .aicontext.json</button>
+            <button type="button" class="btn secondary" id="save-lib-btn" data-i18n="saveLibrary">Save to library</button>
             <button type="button" class="btn ghost" id="new-btn" data-i18n="newCompile">Create another</button>
           </div>
           <p id="copy-toast" class="toast" hidden data-i18n="copied">Copied</p>
@@ -113,7 +128,7 @@
       </main>
 
       <footer class="foot">
-        <span id="version-strip">v0.0.1</span>
+        <span id="version-strip">v0.1.0</span>
       </footer>
     </div>
     <script type="module" src="./src/panel.ts"></script>

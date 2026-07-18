@@ -11,9 +11,10 @@ Turn notes or files into a compact English AI context—merge packs, refine in p
 Create my AI Context turns long, messy notes into a compact English context pack you can reuse in ChatGPT, Claude, Gemini, Cursor, or any other AI chat.
 
 How it works:
-1. Paste text (or later: upload TXT/MD/PDF).
+1. Paste text or upload TXT/MD/PDF.
 2. Add a title, objective, and optional constraints.
 3. Chrome’s on-device Gemini Nano compiles an efficient `.aicontext.json` pack plus a copy-paste prompt block.
+4. Save packs to a local library for reuse.
 
 Why:
 - Spend fewer tokens on fluff.

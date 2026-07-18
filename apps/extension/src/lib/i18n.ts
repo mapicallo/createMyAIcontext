@@ -40,9 +40,12 @@ export type MessageKey =
   | 'fromTextDesc'
   | 'fromFile'
   | 'fromFileDesc'
-  | 'fromFileSoon'
   | 'mergeSoon'
   | 'interpretSoon'
+  | 'libraryTitle'
+  | 'libraryEmpty'
+  | 'libraryOpen'
+  | 'libraryDelete'
   | 'back'
   | 'fieldTitle'
   | 'fieldTitlePh'
@@ -52,23 +55,36 @@ export type MessageKey =
   | 'fieldConstraintsPh'
   | 'fieldSource'
   | 'fieldSourcePh'
+  | 'fieldFile'
+  | 'fieldFileHint'
+  | 'fileSelected'
+  | 'fileReading'
   | 'compile'
   | 'compiling'
   | 'cancel'
   | 'resultTitle'
   | 'copyPrompt'
   | 'downloadJson'
+  | 'saveLibrary'
+  | 'savedLibrary'
   | 'newCompile'
   | 'tabPrompt'
   | 'tabJson'
   | 'tabFacts'
   | 'truncated'
+  | 'fileTruncated'
   | 'missingQ'
   | 'errorEmpty'
+  | 'errorNoFile'
   | 'errorModel'
   | 'errorGeneric'
+  | 'errorTooLarge'
+  | 'errorUnsupported'
+  | 'errorEmptyFile'
+  | 'errorPdf'
+  | 'errorRead'
   | 'copied'
-  | 'truncatedInput'
+  | 'statsInput'
   | 'statsOutput'
   | 'statsRatio';
 
@@ -94,10 +110,13 @@ const en: Record<MessageKey, string> = {
   fromText: 'From text',
   fromTextDesc: 'Paste notes and compile an efficient English context pack.',
   fromFile: 'From file',
-  fromFileDesc: 'TXT, MD, or PDF — coming in v0.1.0.',
-  fromFileSoon: 'Soon',
+  fromFileDesc: 'Upload TXT, MD, or PDF and compile a portable context pack.',
   mergeSoon: 'Merge packs — soon',
   interpretSoon: 'Interpret & refine — soon',
+  libraryTitle: 'Saved packs',
+  libraryEmpty: 'No packs saved yet. Compile one and tap Save to library.',
+  libraryOpen: 'Open',
+  libraryDelete: 'Delete',
   back: 'Back',
   fieldTitle: 'Context title',
   fieldTitlePh: 'e.g. Professional CV',
@@ -107,21 +126,34 @@ const en: Record<MessageKey, string> = {
   fieldConstraintsPh: 'One per line, e.g. Do not invent dates',
   fieldSource: 'Source text',
   fieldSourcePh: 'Paste your notes, bio, or draft context…',
+  fieldFile: 'Source file',
+  fieldFileHint: 'Accepted: .txt, .md, .pdf (and other plain text)',
+  fileSelected: 'Selected',
+  fileReading: 'Reading file…',
   compile: 'Create context pack',
   compiling: 'Compiling…',
   cancel: 'Cancel',
   resultTitle: 'Your context pack',
   copyPrompt: 'Copy prompt block',
   downloadJson: 'Download .aicontext.json',
+  saveLibrary: 'Save to library',
+  savedLibrary: 'Saved',
   newCompile: 'Create another',
   tabPrompt: 'Prompt',
   tabJson: 'JSON',
   tabFacts: 'Facts',
   truncated: 'Source was truncated to fit the on-device model limit.',
+  fileTruncated: 'File text was truncated before compiling.',
   missingQ: 'Suggested questions to improve this pack',
   errorEmpty: 'Please paste some source text.',
+  errorNoFile: 'Please choose a file first.',
   errorModel: 'The model did not return a usable pack. Try shorter text or clearer objective.',
   errorGeneric: 'Something went wrong. Try again.',
+  errorTooLarge: 'File is too large (max 16 MB).',
+  errorUnsupported: 'Unsupported file type. Use TXT, MD, or PDF.',
+  errorEmptyFile: 'No text could be extracted from this file.',
+  errorPdf: 'Could not read this PDF.',
+  errorRead: 'Could not read this file.',
   copied: 'Copied',
   statsInput: 'Input',
   statsOutput: 'Output',
@@ -150,10 +182,13 @@ const es: Record<MessageKey, string> = {
   fromText: 'Desde texto',
   fromTextDesc: 'Pega notas y genera un pack de contexto eficiente en inglés.',
   fromFile: 'Desde archivo',
-  fromFileDesc: 'TXT, MD o PDF — llega en v0.1.0.',
-  fromFileSoon: 'Pronto',
+  fromFileDesc: 'Sube TXT, MD o PDF y genera un pack de contexto portable.',
   mergeSoon: 'Fusionar packs — pronto',
   interpretSoon: 'Interpretar y ajustar — pronto',
+  libraryTitle: 'Packs guardados',
+  libraryEmpty: 'Aún no hay packs. Compila uno y pulsa Guardar en biblioteca.',
+  libraryOpen: 'Abrir',
+  libraryDelete: 'Eliminar',
   back: 'Atrás',
   fieldTitle: 'Título del contexto',
   fieldTitlePh: 'p. ej. CV profesional',
@@ -163,21 +198,34 @@ const es: Record<MessageKey, string> = {
   fieldConstraintsPh: 'Una por línea, p. ej. No inventes fechas',
   fieldSource: 'Texto fuente',
   fieldSourcePh: 'Pega tus notas, bio o borrador de contexto…',
+  fieldFile: 'Archivo fuente',
+  fieldFileHint: 'Aceptados: .txt, .md, .pdf (y otro texto plano)',
+  fileSelected: 'Seleccionado',
+  fileReading: 'Leyendo archivo…',
   compile: 'Crear pack de contexto',
   compiling: 'Compilando…',
   cancel: 'Cancelar',
   resultTitle: 'Tu pack de contexto',
   copyPrompt: 'Copiar bloque prompt',
   downloadJson: 'Descargar .aicontext.json',
+  saveLibrary: 'Guardar en biblioteca',
+  savedLibrary: 'Guardado',
   newCompile: 'Crear otro',
   tabPrompt: 'Prompt',
   tabJson: 'JSON',
   tabFacts: 'Hechos',
   truncated: 'El texto se truncó para el límite del modelo en el dispositivo.',
+  fileTruncated: 'El texto del archivo se truncó antes de compilar.',
   missingQ: 'Preguntas sugeridas para mejorar este pack',
   errorEmpty: 'Pega algún texto fuente.',
+  errorNoFile: 'Elige un archivo primero.',
   errorModel: 'El modelo no devolvió un pack usable. Prueba un texto más corto o un objetivo más claro.',
   errorGeneric: 'Algo falló. Inténtalo de nuevo.',
+  errorTooLarge: 'El archivo es demasiado grande (máx. 16 MB).',
+  errorUnsupported: 'Tipo no soportado. Usa TXT, MD o PDF.',
+  errorEmptyFile: 'No se pudo extraer texto de este archivo.',
+  errorPdf: 'No se pudo leer este PDF.',
+  errorRead: 'No se pudo leer este archivo.',
   copied: 'Copiado',
   statsInput: 'Entrada',
   statsOutput: 'Salida',

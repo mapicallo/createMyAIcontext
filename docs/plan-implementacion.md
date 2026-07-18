@@ -297,9 +297,9 @@ Fase 3 añade: **Interpretation** (prosa) → chat corto de ajuste → Resultado
 
 ### Sprint B — Completar v0.1.0
 
-- [ ] PDF extract (+ TXT/MD)  
+- [x] PDF extract (+ TXT/MD)  
 - [x] Campos título/objetivo/restricciones  
-- [ ] Biblioteca local mínima  
+- [x] Biblioteca local mínima  
 - [x] i18n ES/EN  
 - [x] privacy + CHROME_WEB_STORE.md + pack ZIP  
 - [ ] Envío CWS  

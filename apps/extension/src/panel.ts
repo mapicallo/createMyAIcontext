@@ -2,6 +2,11 @@ import './panel.css';
 import { compileFromText } from './lib/compile.js';
 import { copyText, downloadPack } from './lib/exportImport.js';
 import {
+  extractDocumentText,
+  titleFromFileName,
+  type ExtractFailure,
+} from './lib/fileExtract.js';
+import {
   applyStaticTranslations,
   getLocale,
   initI18n,
@@ -11,6 +16,12 @@ import {
   type MessageKey,
 } from './lib/i18n.js';
 import {
+  deleteFromLibrary,
+  listLibrary,
+  saveToLibrary,
+  type LibraryEntry,
+} from './lib/library.js';
+import {
   hasLanguageModelApi,
   queryAvailability,
   warmUpModel,
@@ -18,7 +29,7 @@ import {
 } from './lib/model.js';
 import type { AiContextPack } from './lib/schema.js';
 
-const APP_VERSION = '0.0.1';
+const APP_VERSION = '0.1.0';
 
 const statusSection = document.getElementById('model-status') as HTMLElement;
 const statusTitle = document.getElementById('status-title')!;
@@ -41,11 +52,26 @@ const missingList = document.getElementById('missing-list')!;
 const copyToast = document.getElementById('copy-toast')!;
 const localeSelect = document.getElementById('locale-select') as HTMLSelectElement;
 const versionStrip = document.getElementById('version-strip')!;
+const sourceTextWrap = document.getElementById('source-text-wrap')!;
+const sourceFileWrap = document.getElementById('source-file-wrap')!;
+const fieldSource = document.getElementById('field-source') as HTMLTextAreaElement;
+const fieldFile = document.getElementById('field-file') as HTMLInputElement;
+const fieldTitle = document.getElementById('field-title') as HTMLInputElement;
+const fileStatus = document.getElementById('file-status')!;
+const libraryEmpty = document.getElementById('library-empty')!;
+const libraryList = document.getElementById('library-list')!;
+const saveLibBtn = document.getElementById('save-lib-btn') as HTMLButtonElement;
 
+type CompileMode = 'text' | 'file';
+
+let compileMode: CompileMode = 'text';
 let currentPack: AiContextPack | null = null;
+let fileSourceText = '';
+let fileExtractTruncated = false;
 let resultTab: 'prompt' | 'json' | 'facts' = 'prompt';
 let abort: AbortController | null = null;
 let runningAvail = false;
+let lastTruncKind: 'model' | 'file' | 'both' | null = null;
 
 function setUiState(state: ModelUiState): void {
   statusSection.setAttribute('data-state', state);
@@ -64,12 +90,38 @@ function showView(which: 'home' | 'compile' | 'result'): void {
   viewHome.hidden = which !== 'home';
   viewCompile.hidden = which !== 'compile';
   viewResult.hidden = which !== 'result';
+  if (which === 'home') void refreshLibrary();
 }
 
 function setProgress(ratio: number): void {
   const pct = Math.round(ratio * 100);
   progressBar.value = pct;
   progressBar.textContent = `${pct}%`;
+}
+
+function setCompileMode(mode: CompileMode): void {
+  compileMode = mode;
+  sourceTextWrap.hidden = mode !== 'text';
+  sourceFileWrap.hidden = mode !== 'file';
+  formError.hidden = true;
+  if (mode === 'text') {
+    fieldSource.focus();
+  }
+}
+
+function extractErrorKey(error: ExtractFailure): MessageKey {
+  switch (error) {
+    case 'too_large':
+      return 'errorTooLarge';
+    case 'unsupported':
+      return 'errorUnsupported';
+    case 'empty':
+      return 'errorEmptyFile';
+    case 'pdf_failed':
+      return 'errorPdf';
+    default:
+      return 'errorRead';
+  }
 }
 
 async function runAvailabilityFlow(): Promise<void> {
@@ -139,6 +191,19 @@ function renderResult(): void {
     `<span>${t('statsRatio')}: ${pct}%</span>`,
   ].join('');
 
+  if (lastTruncKind === 'both') {
+    truncNote.hidden = false;
+    truncNote.textContent = `${t('fileTruncated')} ${t('truncated')}`;
+  } else if (lastTruncKind === 'file') {
+    truncNote.hidden = false;
+    truncNote.textContent = t('fileTruncated');
+  } else if (lastTruncKind === 'model') {
+    truncNote.hidden = false;
+    truncNote.textContent = t('truncated');
+  } else {
+    truncNote.hidden = true;
+  }
+
   const qs = currentPack.missingQuestions ?? [];
   if (qs.length) {
     missingWrap.hidden = false;
@@ -147,24 +212,90 @@ function renderResult(): void {
     missingWrap.hidden = true;
     missingList.innerHTML = '';
   }
+
+  saveLibBtn.disabled = false;
+  saveLibBtn.textContent = t('saveLibrary');
 }
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function formatSavedAt(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(getLocale() === 'es' ? 'es' : 'en', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+  } catch {
+    return iso;
+  }
+}
+
+async function refreshLibrary(): Promise<void> {
+  const entries = await listLibrary();
+  if (!entries.length) {
+    libraryEmpty.hidden = false;
+    libraryList.hidden = true;
+    libraryList.innerHTML = '';
+    return;
+  }
+
+  libraryEmpty.hidden = true;
+  libraryList.hidden = false;
+  libraryList.innerHTML = entries
+    .map(
+      (e) => `
+      <li class="library-item" data-id="${escapeHtml(e.id)}">
+        <div class="meta">
+          <strong>${escapeHtml(e.title)}</strong>
+          <small>${escapeHtml(formatSavedAt(e.savedAt))}</small>
+        </div>
+        <div class="actions">
+          <button type="button" data-action="open">${t('libraryOpen')}</button>
+          <button type="button" data-action="delete">${t('libraryDelete')}</button>
+        </div>
+      </li>`,
+    )
+    .join('');
+}
+
+function openLibraryEntry(entry: LibraryEntry): void {
+  currentPack = entry.pack;
+  lastTruncKind = null;
+  resultTab = 'prompt';
+  document.querySelectorAll('.tab').forEach((el) => {
+    el.classList.toggle('active', el.getAttribute('data-tab') === 'prompt');
+  });
+  renderResult();
+  showView('result');
+}
+
 async function onCompile(ev: Event): Promise<void> {
   ev.preventDefault();
   formError.hidden = true;
-  const title = (document.getElementById('field-title') as HTMLInputElement).value;
+  const title = fieldTitle.value;
   const objective = (document.getElementById('field-objective') as HTMLTextAreaElement).value;
   const constraintsText = (document.getElementById('field-constraints') as HTMLTextAreaElement).value;
-  const sourceText = (document.getElementById('field-source') as HTMLTextAreaElement).value;
 
-  if (!sourceText.trim()) {
-    formError.hidden = false;
-    formError.textContent = t('errorEmpty');
-    return;
+  let sourceText = '';
+  let extractTrunc = false;
+
+  if (compileMode === 'file') {
+    if (!fileSourceText.trim()) {
+      formError.hidden = false;
+      formError.textContent = t('errorNoFile');
+      return;
+    }
+    sourceText = fileSourceText;
+    extractTrunc = fileExtractTruncated;
+  } else {
+    sourceText = fieldSource.value;
+    if (!sourceText.trim()) {
+      formError.hidden = false;
+      formError.textContent = t('errorEmpty');
+      return;
+    }
   }
 
   abort?.abort();
@@ -186,7 +317,11 @@ async function onCompile(ev: Event): Promise<void> {
       abort.signal,
     );
     currentPack = pack;
-    truncNote.hidden = !truncated;
+    if (extractTrunc && truncated) lastTruncKind = 'both';
+    else if (extractTrunc) lastTruncKind = 'file';
+    else if (truncated) lastTruncKind = 'model';
+    else lastTruncKind = null;
+
     resultTab = 'prompt';
     document.querySelectorAll('.tab').forEach((el) => {
       el.classList.toggle('active', el.getAttribute('data-tab') === 'prompt');
@@ -208,10 +343,45 @@ async function onCompile(ev: Event): Promise<void> {
   }
 }
 
+async function onFilePicked(): Promise<void> {
+  const file = fieldFile.files?.[0];
+  fileSourceText = '';
+  fileExtractTruncated = false;
+  fileStatus.hidden = true;
+  formError.hidden = true;
+  if (!file) return;
+
+  fileStatus.hidden = false;
+  fileStatus.textContent = t('fileReading');
+
+  const result = await extractDocumentText(file);
+  if (!result.ok) {
+    fileStatus.hidden = true;
+    formError.hidden = false;
+    formError.textContent = t(extractErrorKey(result.error));
+    fieldFile.value = '';
+    return;
+  }
+
+  fileSourceText = result.text;
+  fileExtractTruncated = result.truncated;
+  fileStatus.textContent = `${t('fileSelected')}: ${result.fileName} (${result.text.length} chars)`;
+  if (!fieldTitle.value.trim()) {
+    fieldTitle.value = titleFromFileName(result.fileName);
+  }
+}
+
 function bindUi(): void {
   versionStrip.textContent = `v${APP_VERSION}`;
 
-  document.getElementById('btn-from-text')!.addEventListener('click', () => showView('compile'));
+  document.getElementById('btn-from-text')!.addEventListener('click', () => {
+    setCompileMode('text');
+    showView('compile');
+  });
+  document.getElementById('btn-from-file')!.addEventListener('click', () => {
+    setCompileMode('file');
+    showView('compile');
+  });
   document.getElementById('back-home')!.addEventListener('click', () => showView('home'));
   document.getElementById('back-compile')!.addEventListener('click', () => showView('compile'));
   document.getElementById('new-btn')!.addEventListener('click', () => {
@@ -221,6 +391,7 @@ function bindUi(): void {
 
   document.getElementById('compile-form')!.addEventListener('submit', (e) => void onCompile(e));
   cancelBtn.addEventListener('click', () => abort?.abort());
+  fieldFile.addEventListener('change', () => void onFilePicked());
 
   document.querySelectorAll('.tab').forEach((tab) => {
     tab.addEventListener('click', () => {
@@ -235,6 +406,7 @@ function bindUi(): void {
     if (!currentPack) return;
     await copyText(currentPack.promptBlock);
     copyToast.hidden = false;
+    copyToast.textContent = t('copied');
     setTimeout(() => {
       copyToast.hidden = true;
     }, 1500);
@@ -242,6 +414,45 @@ function bindUi(): void {
 
   document.getElementById('download-btn')!.addEventListener('click', () => {
     if (currentPack) downloadPack(currentPack);
+  });
+
+  saveLibBtn.addEventListener('click', async () => {
+    if (!currentPack) return;
+    saveLibBtn.disabled = true;
+    try {
+      await saveToLibrary(currentPack);
+      saveLibBtn.textContent = t('savedLibrary');
+      copyToast.hidden = false;
+      copyToast.textContent = t('savedLibrary');
+      setTimeout(() => {
+        copyToast.hidden = true;
+      }, 1500);
+    } catch (e) {
+      console.error('[CMAC] save library', e);
+      saveLibBtn.disabled = false;
+      saveLibBtn.textContent = t('saveLibrary');
+    }
+  });
+
+  libraryList.addEventListener('click', (ev) => {
+    const btn = (ev.target as HTMLElement).closest('button[data-action]') as HTMLButtonElement | null;
+    if (!btn) return;
+    const item = btn.closest('.library-item') as HTMLElement | null;
+    const id = item?.getAttribute('data-id');
+    if (!id) return;
+    const action = btn.getAttribute('data-action');
+    void (async () => {
+      if (action === 'delete') {
+        await deleteFromLibrary(id);
+        await refreshLibrary();
+        return;
+      }
+      if (action === 'open') {
+        const entries = await listLibrary();
+        const entry = entries.find((e) => e.id === id);
+        if (entry) openLibraryEntry(entry);
+      }
+    })();
   });
 
   retryBtn.addEventListener('click', () => void runAvailabilityFlow());
@@ -253,6 +464,7 @@ function bindUi(): void {
       setStatus('stateReady', 'stateReadyDetail');
     }
     if (currentPack) renderResult();
+    await refreshLibrary();
   });
 
   document.getElementById('privacy-link')!.addEventListener('click', (e) => {

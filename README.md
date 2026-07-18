@@ -10,10 +10,9 @@ Chrome extension that turns natural-language notes or files into a **compact Eng
 
 | Version | Scope |
 |---------|--------|
-| **0.0.1** | Bootstrap + compile-from-text MVP path |
-| 0.1.0 | + PDF/TXT file, library, CWS pack (planned) |
-| 0.2.0 | Merge packs |
-| 0.3.0 | Interpret & refine |
+| **0.1.0** | Compile from text + file (TXT/MD/PDF), local library |
+| 0.2.0 | Merge packs (planned) |
+| 0.3.0 | Interpret & refine (planned) |
 
 ## Develop
 

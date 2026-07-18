@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Create my AI Context",
-  "version": "0.0.1",
-  "description": "Turn notes into a compact English AI context pack. On-device with Chrome AI—no cloud upload.",
+  "version": "0.1.0",
+  "description": "Turn notes or files into a compact English AI context pack. On-device with Chrome AI—no cloud upload.",
   "action": {
     "default_title": "Create my AI Context",
     "default_icon": {
