@@ -488,6 +488,10 @@ textarea {
   font-size: 0.85rem;
 }
 
+.is-hidden {
+  display: none !important;
+}
+
 .merge-select {
   display: flex;
   flex-direction: column;

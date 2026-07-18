@@ -1,7 +1,13 @@
 export const MAX_FILE_BYTES = 16 * 1024 * 1024;
 export const MAX_EXTRACT_CHARS = 500_000;
 
-export type ExtractFailure = 'too_large' | 'unsupported' | 'empty' | 'pdf_failed' | 'read_failed';
+export type ExtractFailure =
+  | 'too_large'
+  | 'unsupported'
+  | 'empty'
+  | 'pdf_failed'
+  | 'pdf_encrypted'
+  | 'read_failed';
 
 export type ExtractResult =
   | { ok: true; text: string; truncated: boolean; fileName: string }
@@ -21,6 +27,8 @@ const TEXT_EXT = new Set([
   '.yaml',
 ]);
 
+let workerConfigured = false;
+
 function extOf(name: string): string {
   const i = name.lastIndexOf('.');
   return i >= 0 ? name.slice(i).toLowerCase() : '';
@@ -31,15 +39,36 @@ function truncateText(text: string, max: number): { text: string; truncated: boo
   return { text: text.slice(0, max), truncated: true };
 }
 
+function configurePdfWorker(pdfjs: {
+  GlobalWorkerOptions: { workerSrc: string };
+}): void {
+  if (workerConfigured) return;
+  try {
+    // Bundled beside the extension root by build-extension.mjs
+    pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('pdf.worker.min.mjs');
+  } catch {
+    /* non-extension context */
+  }
+  workerConfigured = true;
+}
+
 async function extractPdfText(file: File): Promise<string> {
   const buffer = await file.arrayBuffer();
+  // Copy bytes — pdf.js may transfer/detach the underlying ArrayBuffer.
+  const data = new Uint8Array(buffer.slice(0));
+
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const doc = await pdfjs.getDocument({
-    data: buffer,
+  configurePdfWorker(pdfjs);
+
+  const loadingTask = pdfjs.getDocument({
+    data,
     useWorkerFetch: false,
     isEvalSupported: false,
     useSystemFonts: true,
-  }).promise;
+    disableFontFace: true,
+  });
+
+  const doc = await loadingTask.promise;
 
   const parts: string[] = [];
   for (let p = 1; p <= doc.numPages; p++) {
@@ -53,7 +82,17 @@ async function extractPdfText(file: File): Promise<string> {
     if (pageText) parts.push(pageText);
   }
 
+  try {
+    await doc.destroy();
+  } catch {
+    /* ignore */
+  }
+
   return parts.join('\n\n');
+}
+
+function isPdfFile(file: File, ext: string): boolean {
+  return ext === '.pdf' || file.type === 'application/pdf';
 }
 
 export async function extractDocumentText(file: File): Promise<ExtractResult> {
@@ -63,18 +102,23 @@ export async function extractDocumentText(file: File): Promise<ExtractResult> {
   let raw = '';
 
   try {
-    if (ext === '.pdf' || file.type === 'application/pdf') {
+    if (isPdfFile(file, ext)) {
       raw = await extractPdfText(file);
     } else if (TEXT_EXT.has(ext) || file.type.startsWith('text/')) {
       raw = await file.text();
     } else {
       return { ok: false, error: 'unsupported' };
     }
-  } catch {
-    return {
-      ok: false,
-      error: ext === '.pdf' || file.type === 'application/pdf' ? 'pdf_failed' : 'read_failed',
-    };
+  } catch (err) {
+    console.error('[CMAC] extractDocumentText', file.name, err);
+    const msg = String((err as Error)?.message ?? err).toLowerCase();
+    if (isPdfFile(file, ext)) {
+      if (msg.includes('password') || msg.includes('encrypted')) {
+        return { ok: false, error: 'pdf_encrypted' };
+      }
+      return { ok: false, error: 'pdf_failed' };
+    }
+    return { ok: false, error: 'read_failed' };
   }
 
   raw = raw.replace(/\r\n/g, '\n').trim();

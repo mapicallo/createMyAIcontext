@@ -174,6 +174,8 @@ function setCompileMode(mode: CompileMode): void {
   compileMode = mode;
   sourceTextWrap.hidden = mode !== 'text';
   sourceFileWrap.hidden = mode !== 'file';
+  sourceTextWrap.classList.toggle('is-hidden', mode !== 'text');
+  sourceFileWrap.classList.toggle('is-hidden', mode !== 'file');
   formError.hidden = true;
 }
 
@@ -187,6 +189,8 @@ function extractErrorKey(error: ExtractFailure): MessageKey {
       return 'errorEmptyFile';
     case 'pdf_failed':
       return 'errorPdf';
+    case 'pdf_encrypted':
+      return 'errorPdfEncrypted';
     default:
       return 'errorRead';
   }
@@ -753,10 +757,10 @@ async function onFilePicked(): Promise<void> {
 
   const result = await extractDocumentText(file);
   if (!result.ok) {
-    fileStatus.hidden = true;
     formError.hidden = false;
     formError.textContent = t(extractErrorKey(result.error));
-    fieldFile.value = '';
+    fileStatus.hidden = false;
+    fileStatus.textContent = `${t('fileSelected')}: ${file.name}`;
     return;
   }
 
