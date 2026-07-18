@@ -15,13 +15,14 @@ How it works:
 2. Add a title, objective, and optional constraints.
 3. Chrome’s on-device Gemini Nano compiles an efficient `.aicontext.json` pack plus a copy-paste prompt block.
 4. Save packs to a local library for reuse.
+5. Merge packs, or interpret a draft context in plain language and refine before building the pack.
 
 Why:
 - Spend fewer tokens on fluff.
 - Keep a portable context across models and threads.
 - Stay private — processing stays on your device.
 
-Coming soon: interpret & refine in plain language, more UI languages.
+Coming soon: more UI languages (PT/FR/DE) and store polish.
 
 Requires Chrome desktop with Gemini Nano / Prompt API available.
 

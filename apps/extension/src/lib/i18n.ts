@@ -42,7 +42,8 @@ export type MessageKey =
   | 'fromFileDesc'
   | 'mergePacks'
   | 'mergePacksDesc'
-  | 'interpretSoon'
+  | 'interpretRefine'
+  | 'interpretRefineDesc'
   | 'libraryTitle'
   | 'libraryEmpty'
   | 'libraryOpen'
@@ -98,10 +99,30 @@ export type MessageKey =
   | 'errorNeedTwo'
   | 'errorTooMany'
   | 'errorInvalidPack'
+  | 'errorEmptyInstruction'
   | 'copied'
   | 'statsInput'
   | 'statsOutput'
-  | 'statsRatio';
+  | 'statsRatio'
+  | 'interpSource'
+  | 'interpSourcePh'
+  | 'interpImport'
+  | 'interpFromLib'
+  | 'interpLibNone'
+  | 'interpLibPlaceholder'
+  | 'interpAction'
+  | 'interpreting'
+  | 'interpResultTitle'
+  | 'interpWhatAiSees'
+  | 'interpRefineLabel'
+  | 'interpRefinePh'
+  | 'interpSend'
+  | 'interpRefining'
+  | 'interpBuildPack'
+  | 'interpBuilding'
+  | 'interpHistory'
+  | 'interpLoadedPack'
+  | 'interpLoadedLib';
 
 const en: Record<MessageKey, string> = {
   appName: 'Create my AI Context',
@@ -128,7 +149,8 @@ const en: Record<MessageKey, string> = {
   fromFileDesc: 'Upload TXT, MD, or PDF and compile a portable context pack.',
   mergePacks: 'Merge packs',
   mergePacksDesc: 'Combine 2–5 saved or imported packs into one efficient context.',
-  interpretSoon: 'Interpret & refine — soon',
+  interpretRefine: 'Interpret & refine',
+  interpretRefineDesc: 'See what an AI would understand, adjust in plain language, then build a pack.',
   libraryTitle: 'Saved packs',
   libraryEmpty: 'No packs saved yet. Compile one and tap Save to library.',
   libraryOpen: 'Open',
@@ -184,10 +206,30 @@ const en: Record<MessageKey, string> = {
   errorNeedTwo: 'Select at least 2 packs to merge.',
   errorTooMany: 'You can merge at most 5 packs.',
   errorInvalidPack: 'That file is not a valid .aicontext.json pack.',
+  errorEmptyInstruction: 'Write what you want to change.',
   copied: 'Copied',
   statsInput: 'Input',
   statsOutput: 'Output',
   statsRatio: 'Size vs input',
+  interpSource: 'Supposed context',
+  interpSourcePh: 'Paste a draft context, notes, or a prompt you already use…',
+  interpImport: 'Or import .aicontext.json',
+  interpFromLib: 'Or pick from library',
+  interpLibNone: 'No saved packs',
+  interpLibPlaceholder: '— choose a saved pack —',
+  interpAction: 'Interpret',
+  interpreting: 'Interpreting…',
+  interpResultTitle: 'Interpret & refine',
+  interpWhatAiSees: 'What an AI would understand',
+  interpRefineLabel: 'Ask for a change',
+  interpRefinePh: 'e.g. Remove family details and add that I am a freelancer',
+  interpSend: 'Apply change',
+  interpRefining: 'Updating…',
+  interpBuildPack: 'Create efficient pack',
+  interpBuilding: 'Building pack…',
+  interpHistory: 'Refinement history',
+  interpLoadedPack: 'Loaded pack file',
+  interpLoadedLib: 'Loaded from library',
 };
 
 const es: Record<MessageKey, string> = {
@@ -215,7 +257,8 @@ const es: Record<MessageKey, string> = {
   fromFileDesc: 'Sube TXT, MD o PDF y genera un pack de contexto portable.',
   mergePacks: 'Fusionar packs',
   mergePacksDesc: 'Combina 2–5 packs guardados o importados en un solo contexto eficiente.',
-  interpretSoon: 'Interpretar y ajustar — pronto',
+  interpretRefine: 'Interpretar y ajustar',
+  interpretRefineDesc: 'Mira qué entendería una IA, ajústalo en lenguaje natural y genera el pack.',
   libraryTitle: 'Packs guardados',
   libraryEmpty: 'Aún no hay packs. Compila uno y pulsa Guardar en biblioteca.',
   libraryOpen: 'Abrir',
@@ -271,10 +314,30 @@ const es: Record<MessageKey, string> = {
   errorNeedTwo: 'Selecciona al menos 2 packs para fusionar.',
   errorTooMany: 'Puedes fusionar como máximo 5 packs.',
   errorInvalidPack: 'Ese archivo no es un pack .aicontext.json válido.',
+  errorEmptyInstruction: 'Escribe qué quieres cambiar.',
   copied: 'Copiado',
   statsInput: 'Entrada',
   statsOutput: 'Salida',
   statsRatio: 'Tamaño vs entrada',
+  interpSource: 'Contexto supuesto',
+  interpSourcePh: 'Pega un borrador de contexto, notas o un prompt que ya uses…',
+  interpImport: 'O importa .aicontext.json',
+  interpFromLib: 'O elige de la biblioteca',
+  interpLibNone: 'No hay packs guardados',
+  interpLibPlaceholder: '— elige un pack guardado —',
+  interpAction: 'Interpretar',
+  interpreting: 'Interpretando…',
+  interpResultTitle: 'Interpretar y ajustar',
+  interpWhatAiSees: 'Lo que entendería una IA',
+  interpRefineLabel: 'Pide un cambio',
+  interpRefinePh: 'p. ej. Quita lo familiar y añade que soy autónomo',
+  interpSend: 'Aplicar cambio',
+  interpRefining: 'Actualizando…',
+  interpBuildPack: 'Crear pack eficiente',
+  interpBuilding: 'Creando pack…',
+  interpHistory: 'Historial de ajustes',
+  interpLoadedPack: 'Pack cargado',
+  interpLoadedLib: 'Cargado desde biblioteca',
 };
 
 const tables: Record<Locale, Record<MessageKey, string>> = { en, es };

@@ -513,3 +513,67 @@ textarea {
   border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
   padding-left: 0.65rem;
 }
+
+.interp-prose {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 260px;
+  overflow: auto;
+  margin-bottom: 0.85rem;
+}
+
+.interp-history {
+  margin-bottom: 0.85rem;
+}
+
+.interp-history h3,
+#interp-step-refine h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+}
+
+.interp-history ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.interp-history li {
+  font-size: 0.8rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+}
+
+.interp-history li.user {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+
+.interp-history li small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+#interp-lib-select {
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  background: var(--bg-elev);
+  color: var(--ink);
+}

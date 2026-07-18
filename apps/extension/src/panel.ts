@@ -16,6 +16,12 @@ import {
   type MessageKey,
 } from './lib/i18n.js';
 import {
+  interpretContext,
+  materialFromInput,
+  refineInterpretation,
+  type RefineTurn,
+} from './lib/interpret.js';
+import {
   deleteFromLibrary,
   listLibrary,
   saveToLibrary,
@@ -30,7 +36,7 @@ import {
 } from './lib/model.js';
 import type { AiContextPack } from './lib/schema.js';
 
-const APP_VERSION = '0.2.0';
+const APP_VERSION = '0.3.0';
 
 const statusSection = document.getElementById('model-status') as HTMLElement;
 const statusTitle = document.getElementById('status-title')!;
@@ -42,6 +48,7 @@ const main = document.getElementById('main')!;
 const viewHome = document.getElementById('view-home')!;
 const viewCompile = document.getElementById('view-compile')!;
 const viewMerge = document.getElementById('view-merge')!;
+const viewInterpret = document.getElementById('view-interpret')!;
 const viewResult = document.getElementById('view-result')!;
 const formError = document.getElementById('form-error')!;
 const mergeError = document.getElementById('merge-error')!;
@@ -74,8 +81,28 @@ const mergeImport = document.getElementById('merge-import') as HTMLInputElement;
 const mergeImportStatus = document.getElementById('merge-import-status')!;
 const mergeTitle = document.getElementById('merge-title') as HTMLInputElement;
 
+const interpStepInput = document.getElementById('interp-step-input')!;
+const interpStepRefine = document.getElementById('interp-step-refine')!;
+const interpSource = document.getElementById('interp-source') as HTMLTextAreaElement;
+const interpTitle = document.getElementById('interp-title') as HTMLInputElement;
+const interpImport = document.getElementById('interp-import') as HTMLInputElement;
+const interpLibSelect = document.getElementById('interp-lib-select') as HTMLSelectElement;
+const interpLoadStatus = document.getElementById('interp-load-status')!;
+const interpError = document.getElementById('interp-error')!;
+const interpBtn = document.getElementById('interp-btn') as HTMLButtonElement;
+const interpCancelBtn = document.getElementById('interp-cancel-btn') as HTMLButtonElement;
+const interpProse = document.getElementById('interp-prose')!;
+const interpHistoryWrap = document.getElementById('interp-history-wrap')!;
+const interpHistoryEl = document.getElementById('interp-history')!;
+const refineInput = document.getElementById('refine-input') as HTMLTextAreaElement;
+const refineError = document.getElementById('refine-error')!;
+const refineBtn = document.getElementById('refine-btn') as HTMLButtonElement;
+const refineCancelBtn = document.getElementById('refine-cancel-btn') as HTMLButtonElement;
+const interpBuildBtn = document.getElementById('interp-build-btn') as HTMLButtonElement;
+
 type CompileMode = 'text' | 'file';
-type ResultOrigin = 'compile' | 'merge' | 'library';
+type ResultOrigin = 'compile' | 'merge' | 'library' | 'interpret';
+type ViewName = 'home' | 'compile' | 'merge' | 'interpret' | 'result';
 
 type MergeCandidate = {
   id: string;
@@ -97,6 +124,10 @@ let lastTruncKind: 'model' | 'file' | 'merge' | 'both' | null = null;
 let mergeCandidates: MergeCandidate[] = [];
 let selectedMergeIds = new Set<string>();
 
+let interpLoadedPack: AiContextPack | null = null;
+let currentInterpretation = '';
+let refineHistory: RefineTurn[] = [];
+
 function setUiState(state: ModelUiState): void {
   statusSection.setAttribute('data-state', state);
   statusSection.setAttribute('aria-busy', state === 'checking' || state === 'downloading' ? 'true' : 'false');
@@ -110,13 +141,15 @@ function setStatus(titleKey: MessageKey, detailKey: MessageKey): void {
   statusDetail.textContent = t(detailKey);
 }
 
-function showView(which: 'home' | 'compile' | 'merge' | 'result'): void {
+function showView(which: ViewName): void {
   viewHome.hidden = which !== 'home';
   viewCompile.hidden = which !== 'compile';
   viewMerge.hidden = which !== 'merge';
+  viewInterpret.hidden = which !== 'interpret';
   viewResult.hidden = which !== 'result';
   if (which === 'home') void refreshLibrary();
   if (which === 'merge') void prepareMergeView();
+  if (which === 'interpret') void prepareInterpretView();
 }
 
 function setProgress(ratio: number): void {
@@ -309,7 +342,6 @@ function openLibraryEntry(entry: LibraryEntry): void {
 
 function renderMergeCandidates(): void {
   mergeEmpty.hidden = mergeCandidates.length > 0;
-
   mergePackList.innerHTML = mergeCandidates
     .map((c) => {
       const checked = selectedMergeIds.has(c.id) ? 'checked' : '';
@@ -344,6 +376,74 @@ async function prepareMergeView(): Promise<void> {
   mergeError.hidden = true;
   mergeImportStatus.hidden = true;
   renderMergeCandidates();
+}
+
+async function fillInterpLibrarySelect(): Promise<void> {
+  const entries = await listLibrary();
+  const current = interpLibSelect.value;
+  interpLibSelect.innerHTML = `<option value="">${t('interpLibPlaceholder')}</option>`;
+  if (!entries.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.disabled = true;
+    opt.textContent = t('interpLibNone');
+    interpLibSelect.appendChild(opt);
+    return;
+  }
+  for (const e of entries) {
+    const opt = document.createElement('option');
+    opt.value = e.id;
+    opt.textContent = e.title;
+    interpLibSelect.appendChild(opt);
+  }
+  if (current && entries.some((e) => e.id === current)) interpLibSelect.value = current;
+}
+
+async function prepareInterpretView(): Promise<void> {
+  interpError.hidden = true;
+  refineError.hidden = true;
+  await fillInterpLibrarySelect();
+  if (!currentInterpretation) {
+    interpStepInput.hidden = false;
+    interpStepRefine.hidden = true;
+  }
+}
+
+function resetInterpretSession(): void {
+  currentInterpretation = '';
+  refineHistory = [];
+  interpLoadedPack = null;
+  interpProse.textContent = '';
+  interpHistoryEl.innerHTML = '';
+  interpHistoryWrap.hidden = true;
+  refineInput.value = '';
+  interpStepInput.hidden = false;
+  interpStepRefine.hidden = true;
+}
+
+function renderInterpRefine(): void {
+  interpProse.textContent = currentInterpretation;
+  if (!refineHistory.length) {
+    interpHistoryWrap.hidden = true;
+    interpHistoryEl.innerHTML = '';
+    return;
+  }
+  interpHistoryWrap.hidden = false;
+  interpHistoryEl.innerHTML = refineHistory
+    .map(
+      (turn) => `
+      <li class="${turn.role}">
+        <small>${turn.role === 'user' ? 'You' : 'AI'}</small>
+        ${escapeHtml(turn.content)}
+      </li>`,
+    )
+    .join('');
+}
+
+function showInterpRefineStep(): void {
+  interpStepInput.hidden = true;
+  interpStepRefine.hidden = false;
+  renderInterpRefine();
 }
 
 async function onCompile(ev: Event): Promise<void> {
@@ -482,6 +582,142 @@ async function onMerge(ev: Event): Promise<void> {
   }
 }
 
+async function onInterpret(ev: Event): Promise<void> {
+  ev.preventDefault();
+  interpError.hidden = true;
+
+  const material = materialFromInput({
+    text: interpSource.value,
+    pack: interpLoadedPack,
+  });
+  if (!material) {
+    interpError.hidden = false;
+    interpError.textContent = t('errorEmpty');
+    return;
+  }
+
+  abort?.abort();
+  abort = new AbortController();
+  interpBtn.disabled = true;
+  interpBtn.textContent = t('interpreting');
+  interpCancelBtn.hidden = false;
+
+  try {
+    const { interpretation, truncated } = await interpretContext(material, getLocale(), abort.signal);
+    currentInterpretation = interpretation;
+    refineHistory = [];
+    lastTruncKind = truncated ? 'model' : null;
+    showInterpRefineStep();
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') return;
+    console.error('[CMAC] interpret', e);
+    interpError.hidden = false;
+    interpError.textContent = t('errorGeneric');
+  } finally {
+    interpBtn.disabled = false;
+    interpBtn.textContent = t('interpAction');
+    interpCancelBtn.hidden = true;
+    abort = null;
+  }
+}
+
+async function onRefine(ev: Event): Promise<void> {
+  ev.preventDefault();
+  refineError.hidden = true;
+  const instruction = refineInput.value.trim();
+  if (!instruction) {
+    refineError.hidden = false;
+    refineError.textContent = t('errorEmptyInstruction');
+    return;
+  }
+  if (!currentInterpretation) return;
+
+  abort?.abort();
+  abort = new AbortController();
+  refineBtn.disabled = true;
+  interpBuildBtn.disabled = true;
+  refineBtn.textContent = t('interpRefining');
+  refineCancelBtn.hidden = false;
+
+  try {
+    const { interpretation } = await refineInterpretation(
+      currentInterpretation,
+      instruction,
+      getLocale(),
+      refineHistory,
+      abort.signal,
+    );
+    refineHistory = [
+      ...refineHistory,
+      { role: 'user', content: instruction },
+      { role: 'assistant', content: interpretation },
+    ];
+    currentInterpretation = interpretation;
+    refineInput.value = '';
+    renderInterpRefine();
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') return;
+    console.error('[CMAC] refine', e);
+    refineError.hidden = false;
+    refineError.textContent = t('errorGeneric');
+  } finally {
+    refineBtn.disabled = false;
+    interpBuildBtn.disabled = false;
+    refineBtn.textContent = t('interpSend');
+    refineCancelBtn.hidden = true;
+    abort = null;
+  }
+}
+
+async function onBuildFromInterpretation(): Promise<void> {
+  if (!currentInterpretation.trim()) return;
+  refineError.hidden = true;
+
+  abort?.abort();
+  abort = new AbortController();
+  interpBuildBtn.disabled = true;
+  refineBtn.disabled = true;
+  interpBuildBtn.textContent = t('interpBuilding');
+  refineCancelBtn.hidden = false;
+
+  try {
+    const { pack, truncated } = await compileFromText(
+      {
+        title: interpTitle.value,
+        objective: (document.getElementById('interp-objective') as HTMLTextAreaElement).value,
+        constraintsText: (document.getElementById('interp-constraints') as HTMLTextAreaElement).value,
+        sourceText: currentInterpretation,
+        sourceLang: getLocale(),
+        appVersion: APP_VERSION,
+      },
+      abort.signal,
+    );
+    currentPack = pack;
+    currentWarnings = [];
+    resultOrigin = 'interpret';
+    lastTruncKind = truncated ? 'model' : lastTruncKind;
+    resultTab = 'prompt';
+    document.querySelectorAll('.tab').forEach((el) => {
+      el.classList.toggle('active', el.getAttribute('data-tab') === 'prompt');
+    });
+    renderResult();
+    showView('result');
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') return;
+    console.error('[CMAC] build from interp', e);
+    refineError.hidden = false;
+    const msg = (e as Error)?.message;
+    refineError.textContent =
+      msg === 'INVALID_MODEL_JSON' || msg === 'EMPTY_PACK' ? t('errorModel') : t('errorGeneric');
+  } finally {
+    interpBuildBtn.disabled = false;
+    refineBtn.disabled = false;
+    interpBuildBtn.textContent = t('interpBuildPack');
+    refineCancelBtn.hidden = true;
+    abort = null;
+  }
+}
+
 async function onFilePicked(): Promise<void> {
   const file = fieldFile.files?.[0];
   fileSourceText = '';
@@ -544,6 +780,48 @@ async function onMergeImport(): Promise<void> {
   renderMergeCandidates();
 }
 
+async function onInterpImport(): Promise<void> {
+  const file = interpImport.files?.[0];
+  interpImport.value = '';
+  if (!file) return;
+  try {
+    const pack = await readPackFromFile(file);
+    interpLoadedPack = pack;
+    interpSource.value = '';
+    interpLibSelect.value = '';
+    if (!interpTitle.value.trim()) interpTitle.value = pack.meta.title;
+    const obj = document.getElementById('interp-objective') as HTMLTextAreaElement;
+    if (!obj.value.trim()) obj.value = pack.meta.objective;
+    interpLoadStatus.hidden = false;
+    interpLoadStatus.textContent = `${t('interpLoadedPack')}: ${pack.meta.title}`;
+    interpError.hidden = true;
+  } catch {
+    interpLoadedPack = null;
+    interpError.hidden = false;
+    interpError.textContent = t('errorInvalidPack');
+  }
+}
+
+async function onInterpLibPick(): Promise<void> {
+  const id = interpLibSelect.value;
+  if (!id) {
+    interpLoadedPack = null;
+    interpLoadStatus.hidden = true;
+    return;
+  }
+  const entries = await listLibrary();
+  const entry = entries.find((e) => e.id === id);
+  if (!entry) return;
+  interpLoadedPack = entry.pack;
+  interpSource.value = '';
+  if (!interpTitle.value.trim()) interpTitle.value = entry.title;
+  const obj = document.getElementById('interp-objective') as HTMLTextAreaElement;
+  if (!obj.value.trim()) obj.value = entry.pack.meta.objective;
+  interpLoadStatus.hidden = false;
+  interpLoadStatus.textContent = `${t('interpLoadedLib')}: ${entry.title}`;
+  interpError.hidden = true;
+}
+
 function bindUi(): void {
   versionStrip.textContent = `v${APP_VERSION}`;
 
@@ -556,10 +834,23 @@ function bindUi(): void {
     showView('compile');
   });
   document.getElementById('btn-merge')!.addEventListener('click', () => showView('merge'));
+  document.getElementById('btn-interpret')!.addEventListener('click', () => {
+    resetInterpretSession();
+    showView('interpret');
+  });
   document.getElementById('back-home')!.addEventListener('click', () => showView('home'));
   document.getElementById('back-home-merge')!.addEventListener('click', () => showView('home'));
+  document.getElementById('back-home-interp')!.addEventListener('click', () => {
+    if (!interpStepRefine.hidden) {
+      interpStepRefine.hidden = true;
+      interpStepInput.hidden = false;
+      return;
+    }
+    showView('home');
+  });
   document.getElementById('back-compile')!.addEventListener('click', () => {
     if (resultOrigin === 'merge') showView('merge');
+    else if (resultOrigin === 'interpret') showView('interpret');
     else if (resultOrigin === 'library') showView('home');
     else showView('compile');
   });
@@ -567,15 +858,32 @@ function bindUi(): void {
     currentPack = null;
     currentWarnings = [];
     if (resultOrigin === 'merge') showView('merge');
-    else showView('compile');
+    else if (resultOrigin === 'interpret') {
+      resetInterpretSession();
+      showView('interpret');
+    } else showView('compile');
   });
 
   document.getElementById('compile-form')!.addEventListener('submit', (e) => void onCompile(e));
   document.getElementById('merge-form')!.addEventListener('submit', (e) => void onMerge(e));
+  document.getElementById('interpret-form')!.addEventListener('submit', (e) => void onInterpret(e));
+  document.getElementById('refine-form')!.addEventListener('submit', (e) => void onRefine(e));
+  interpBuildBtn.addEventListener('click', () => void onBuildFromInterpretation());
   cancelBtn.addEventListener('click', () => abort?.abort());
   mergeCancelBtn.addEventListener('click', () => abort?.abort());
+  interpCancelBtn.addEventListener('click', () => abort?.abort());
+  refineCancelBtn.addEventListener('click', () => abort?.abort());
   fieldFile.addEventListener('change', () => void onFilePicked());
   mergeImport.addEventListener('change', () => void onMergeImport());
+  interpImport.addEventListener('change', () => void onInterpImport());
+  interpLibSelect.addEventListener('change', () => void onInterpLibPick());
+  interpSource.addEventListener('input', () => {
+    if (interpSource.value.trim()) {
+      interpLoadedPack = null;
+      interpLibSelect.value = '';
+      interpLoadStatus.hidden = true;
+    }
+  });
 
   mergePackList.addEventListener('change', (ev) => {
     const input = ev.target as HTMLInputElement;
@@ -669,6 +977,7 @@ function bindUi(): void {
     if (currentPack) renderResult();
     await refreshLibrary();
     if (!viewMerge.hidden) renderMergeCandidates();
+    if (!viewInterpret.hidden) await fillInterpLibrarySelect();
   });
 
   document.getElementById('privacy-link')!.addEventListener('click', (e) => {

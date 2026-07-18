@@ -57,7 +57,10 @@
               <span class="card-title" data-i18n="mergePacks">Merge packs</span>
               <span class="card-desc" data-i18n="mergePacksDesc">Combine 2–5 saved or imported packs into one efficient context.</span>
             </button>
-            <p class="soon-line" data-i18n="interpretSoon">Interpret & refine — soon</p>
+            <button type="button" class="card" id="btn-interpret">
+              <span class="card-title" data-i18n="interpretRefine">Interpret & refine</span>
+              <span class="card-desc" data-i18n="interpretRefineDesc">See what an AI would understand, adjust in plain language, then build a pack.</span>
+            </button>
           </div>
           <div class="library">
             <h3 data-i18n="libraryTitle">Saved packs</h3>
@@ -143,6 +146,69 @@
           </form>
         </section>
 
+        <section id="view-interpret" class="view" hidden>
+          <button type="button" class="linkish" id="back-home-interp" data-i18n="back">Back</button>
+
+          <div id="interp-step-input">
+            <form id="interpret-form" class="form">
+              <label>
+                <span data-i18n="fieldTitle">Context title</span>
+                <input id="interp-title" type="text" maxlength="120" data-i18n-placeholder="fieldTitlePh" />
+              </label>
+              <label>
+                <span data-i18n="fieldObjective">Objective</span>
+                <textarea id="interp-objective" rows="2" maxlength="500" data-i18n-placeholder="fieldObjectivePh"></textarea>
+              </label>
+              <label>
+                <span data-i18n="fieldConstraints">Constraints (optional)</span>
+                <textarea id="interp-constraints" rows="2" maxlength="1000" data-i18n-placeholder="fieldConstraintsPh"></textarea>
+              </label>
+              <label>
+                <span data-i18n="interpSource">Supposed context</span>
+                <textarea id="interp-source" rows="8" data-i18n-placeholder="interpSourcePh"></textarea>
+              </label>
+              <label class="file-label">
+                <span data-i18n="interpImport">Or import .aicontext.json</span>
+                <input id="interp-import" type="file" accept=".json,application/json" />
+              </label>
+              <label>
+                <span data-i18n="interpFromLib">Or pick from library</span>
+                <select id="interp-lib-select">
+                  <option value="" data-i18n="interpLibPlaceholder">— choose a saved pack —</option>
+                </select>
+              </label>
+              <p id="interp-load-status" class="note" hidden></p>
+              <p id="interp-error" class="error" hidden></p>
+              <div class="form-actions">
+                <button type="submit" class="btn primary" id="interp-btn" data-i18n="interpAction">Interpret</button>
+                <button type="button" class="btn secondary" id="interp-cancel-btn" hidden data-i18n="cancel">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="interp-step-refine" hidden>
+            <h2 data-i18n="interpResultTitle">Interpret & refine</h2>
+            <h3 data-i18n="interpWhatAiSees">What an AI would understand</h3>
+            <div id="interp-prose" class="interp-prose"></div>
+            <div id="interp-history-wrap" class="interp-history" hidden>
+              <h3 data-i18n="interpHistory">Refinement history</h3>
+              <ul id="interp-history"></ul>
+            </div>
+            <form id="refine-form" class="form">
+              <label>
+                <span data-i18n="interpRefineLabel">Ask for a change</span>
+                <textarea id="refine-input" rows="3" data-i18n-placeholder="interpRefinePh"></textarea>
+              </label>
+              <p id="refine-error" class="error" hidden></p>
+              <div class="form-actions">
+                <button type="submit" class="btn secondary" id="refine-btn" data-i18n="interpSend">Apply change</button>
+                <button type="button" class="btn primary" id="interp-build-btn" data-i18n="interpBuildPack">Create efficient pack</button>
+                <button type="button" class="btn secondary" id="refine-cancel-btn" hidden data-i18n="cancel">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
         <section id="view-result" class="view" hidden>
           <button type="button" class="linkish" id="back-compile" data-i18n="back">Back</button>
           <h2 data-i18n="resultTitle">Your context pack</h2>
@@ -173,7 +239,7 @@
       </main>
 
       <footer class="foot">
-        <span id="version-strip">v0.2.0</span>
+        <span id="version-strip">v0.3.0</span>
       </footer>
     </div>
     <script type="module" src="./src/panel.ts"></script>

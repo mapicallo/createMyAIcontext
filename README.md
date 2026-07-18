@@ -10,8 +10,7 @@ Chrome extension that turns natural-language notes or files into a **compact Eng
 
 | Version | Scope |
 |---------|--------|
-| **0.2.0** | Compile text/file + merge packs + local library |
-| 0.3.0 | Interpret & refine (planned) |
+| **0.3.0** | Compile, merge, interpret & refine + local library |
 | 0.4.0 | More UI languages + landing (planned) |
 
 ## Develop
