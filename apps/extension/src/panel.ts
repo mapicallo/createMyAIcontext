@@ -191,6 +191,8 @@ function extractErrorKey(error: ExtractFailure): MessageKey {
       return 'errorPdf';
     case 'pdf_encrypted':
       return 'errorPdfEncrypted';
+    case 'office_failed':
+      return 'errorOffice';
     default:
       return 'errorRead';
   }

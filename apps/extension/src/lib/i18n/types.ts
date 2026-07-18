@@ -78,6 +78,7 @@ export type MessageKey =
   | 'errorEmptyFile'
   | 'errorPdf'
   | 'errorPdfEncrypted'
+  | 'errorOffice'
   | 'errorRead'
   | 'errorNeedTwo'
   | 'errorTooMany'
