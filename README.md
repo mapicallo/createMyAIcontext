@@ -4,13 +4,14 @@ Chrome extension that turns natural-language notes or files into a **compact Eng
 
 **Store name:** Create my AI Context  
 **Repo:** https://github.com/mapicallo/createMyAIcontext  
-**Plan:** [docs/plan-implementacion.md](docs/plan-implementacion.md)
+**Plan:** [docs/plan-implementacion.md](docs/plan-implementacion.md)  
+**CWS (pendiente de cupo):** [docs/pendiente-publicacion-cws.md](docs/pendiente-publicacion-cws.md)
 
 ## Status
 
 | Version | Scope |
 |---------|--------|
-| **0.4.0** | Full flows + UI EN/ES/PT/FR/DE + store polish |
+| **0.4.5** | UI familia AI4Context; “contexto” (no pack); nota EN en resultado; listo para CWS (pendiente límite 20) |
 | 0.5.x | Guided templates + LocalChat interop (optional) |
 
 ## Load in Chrome (unpacked)

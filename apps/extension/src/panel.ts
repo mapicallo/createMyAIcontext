@@ -37,7 +37,7 @@ import {
 } from './lib/model.js';
 import type { AiContextPack } from './lib/schema.js';
 
-const APP_VERSION = '0.4.0';
+const APP_VERSION = '0.4.5';
 
 const statusSection = document.getElementById('model-status') as HTMLElement;
 const statusTitle = document.getElementById('status-title')!;
@@ -103,10 +103,17 @@ const interpBuildBtn = document.getElementById('interp-build-btn') as HTMLButton
 const busyStrip = document.getElementById('busy-strip')!;
 const requirements = document.getElementById('requirements')!;
 const docsLink = document.getElementById('docs-link') as HTMLAnchorElement;
+const englishContextNote = document.getElementById('english-context-note')!;
 
-function setBusy(on: boolean): void {
+function setBusy(on: boolean, label: MessageKey = 'busyWorking'): void {
   busyStrip.hidden = !on;
-  if (on) busyStrip.textContent = t('busyWorking');
+  if (on) busyStrip.textContent = t(label);
+}
+
+function statusToBusy(phase: 'condense' | 'compile' | 'retry'): void {
+  if (phase === 'condense') setBusy(true, 'busyCondensing');
+  else if (phase === 'retry') setBusy(true, 'busyRetry');
+  else setBusy(true, 'busyCompiling');
 }
 
 type CompileMode = 'text' | 'file';
@@ -129,7 +136,7 @@ let fileExtractTruncated = false;
 let resultTab: 'prompt' | 'json' | 'facts' = 'prompt';
 let abort: AbortController | null = null;
 let runningAvail = false;
-let lastTruncKind: 'model' | 'file' | 'merge' | 'both' | null = null;
+let lastTruncKind: 'model' | 'file' | 'merge' | 'both' | 'condensed' | 'file+condensed' | null = null;
 let mergeCandidates: MergeCandidate[] = [];
 let selectedMergeIds = new Set<string>();
 
@@ -140,6 +147,8 @@ let refineHistory: RefineTurn[] = [];
 function setUiState(state: ModelUiState): void {
   statusSection.setAttribute('data-state', state);
   statusSection.setAttribute('aria-busy', state === 'checking' || state === 'downloading' ? 'true' : 'false');
+  // Hide the status card when ready — no “Chrome AI ready” banner on the home screen.
+  statusSection.hidden = state === 'ready';
   progressWrap.hidden = state !== 'downloading';
   retryBtn.hidden = state !== 'unavailable' && state !== 'no-api';
   statusDetail.hidden = state === 'ready';
@@ -159,9 +168,17 @@ function showView(which: ViewName): void {
   viewMerge.hidden = which !== 'merge';
   viewInterpret.hidden = which !== 'interpret';
   viewResult.hidden = which !== 'result';
+  if (which !== 'result') englishContextNote.hidden = true;
   if (which === 'home') void refreshLibrary();
   if (which === 'merge') void prepareMergeView();
   if (which === 'interpret') void prepareInterpretView();
+  if (which === 'result') updateEnglishContextNote();
+}
+
+function updateEnglishContextNote(): void {
+  const show = Boolean(currentPack) && getLocale() !== 'en' && !viewResult.hidden;
+  englishContextNote.hidden = !show;
+  if (show) englishContextNote.textContent = t('englishContextNote');
 }
 
 function setProgress(ratio: number): void {
@@ -265,15 +282,23 @@ function renderResult(): void {
     `<span>${t('statsRatio')}: ${pct}%</span>`,
   ].join('');
 
+  updateEnglishContextNote();
+
   if (lastTruncKind === 'both') {
     truncNote.hidden = false;
     truncNote.textContent = `${t('fileTruncated')} ${t('truncated')}`;
+  } else if (lastTruncKind === 'file+condensed') {
+    truncNote.hidden = false;
+    truncNote.textContent = `${t('fileTruncated')} ${t('condensed')}`;
   } else if (lastTruncKind === 'file') {
     truncNote.hidden = false;
     truncNote.textContent = t('fileTruncated');
   } else if (lastTruncKind === 'merge') {
     truncNote.hidden = false;
     truncNote.textContent = t('mergeTruncated');
+  } else if (lastTruncKind === 'condensed') {
+    truncNote.hidden = false;
+    truncNote.textContent = t('condensed');
   } else if (lastTruncKind === 'model') {
     truncNote.hidden = false;
     truncNote.textContent = t('truncated');
@@ -499,7 +524,7 @@ async function onCompile(ev: Event): Promise<void> {
   cancelBtn.hidden = false;
 
   try {
-    const { pack, truncated } = await compileFromText(
+    const { pack, truncated, condensed, usedFallback } = await compileFromText(
       {
         title,
         objective,
@@ -509,12 +534,15 @@ async function onCompile(ev: Event): Promise<void> {
         appVersion: APP_VERSION,
       },
       abort.signal,
+      statusToBusy,
     );
     currentPack = pack;
-    currentWarnings = [];
+    currentWarnings = usedFallback ? [t('usedFallback')] : [];
     resultOrigin = 'compile';
-    if (extractTrunc && truncated) lastTruncKind = 'both';
+    if (extractTrunc && truncated && !condensed) lastTruncKind = 'both';
+    else if (extractTrunc && condensed) lastTruncKind = 'file+condensed';
     else if (extractTrunc) lastTruncKind = 'file';
+    else if (condensed) lastTruncKind = 'condensed';
     else if (truncated) lastTruncKind = 'model';
     else lastTruncKind = null;
 
@@ -708,7 +736,7 @@ async function onBuildFromInterpretation(): Promise<void> {
   refineCancelBtn.hidden = false;
 
   try {
-    const { pack, truncated } = await compileFromText(
+    const { pack, truncated, condensed, usedFallback } = await compileFromText(
       {
         title: interpTitle.value,
         objective: (document.getElementById('interp-objective') as HTMLTextAreaElement).value,
@@ -718,11 +746,13 @@ async function onBuildFromInterpretation(): Promise<void> {
         appVersion: APP_VERSION,
       },
       abort.signal,
+      statusToBusy,
     );
     currentPack = pack;
-    currentWarnings = [];
+    currentWarnings = usedFallback ? [t('usedFallback')] : [];
     resultOrigin = 'interpret';
-    lastTruncKind = truncated ? 'model' : lastTruncKind;
+    if (condensed) lastTruncKind = 'condensed';
+    else if (truncated) lastTruncKind = 'model';
     resultTab = 'prompt';
     document.querySelectorAll('.tab').forEach((el) => {
       el.classList.toggle('active', el.getAttribute('data-tab') === 'prompt');
@@ -874,6 +904,19 @@ function bindUi(): void {
       interpStepInput.hidden = false;
       return;
     }
+    showView('home');
+  });
+  const goHome = () => showView('home');
+  document.getElementById('menu-compile-btn')!.addEventListener('click', goHome);
+  document.getElementById('menu-merge-btn')!.addEventListener('click', goHome);
+  document.getElementById('menu-interp-btn')!.addEventListener('click', goHome);
+  document.getElementById('menu-refine-btn')!.addEventListener('click', () => {
+    resetInterpretSession();
+    showView('home');
+  });
+  document.getElementById('menu-result-btn')!.addEventListener('click', () => {
+    currentPack = null;
+    currentWarnings = [];
     showView('home');
   });
   document.getElementById('back-compile')!.addEventListener('click', () => {

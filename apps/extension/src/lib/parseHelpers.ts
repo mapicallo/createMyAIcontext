@@ -20,10 +20,31 @@ export function asFacts(v: unknown): AiContextFact[] {
   if (!Array.isArray(v)) return [];
   const out: AiContextFact[] = [];
   for (const item of v) {
+    if (typeof item === 'string') {
+      const s = item.trim();
+      if (!s) continue;
+      const colon = s.indexOf(':');
+      if (colon > 0 && colon < 48) {
+        out.push({ key: s.slice(0, colon).trim(), value: s.slice(colon + 1).trim(), weight: 'medium' });
+      } else {
+        out.push({ key: `fact_${out.length + 1}`, value: s, weight: 'medium' });
+      }
+      continue;
+    }
     if (!item || typeof item !== 'object') continue;
     const o = item as Record<string, unknown>;
-    const key = typeof o.key === 'string' ? o.key.trim() : '';
-    const value = typeof o.value === 'string' ? o.value.trim() : '';
+    const key =
+      (typeof o.key === 'string' && o.key.trim()) ||
+      (typeof o.name === 'string' && o.name.trim()) ||
+      (typeof o.label === 'string' && o.label.trim()) ||
+      '';
+    const valueRaw = o.value ?? o.text ?? o.content ?? o.val;
+    const value =
+      typeof valueRaw === 'string'
+        ? valueRaw.trim()
+        : typeof valueRaw === 'number' || typeof valueRaw === 'boolean'
+          ? String(valueRaw)
+          : '';
     if (!key || !value) continue;
     let weight: FactWeight | undefined;
     if (o.weight === 'high' || o.weight === 'medium' || o.weight === 'low') weight = o.weight;

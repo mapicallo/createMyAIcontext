@@ -3,6 +3,10 @@ export type Locale = 'en' | 'es' | 'pt' | 'fr' | 'de';
 export type MessageKey =
   | 'appName'
   | 'tagline'
+  | 'byAi4Context'
+  | 'langLabel'
+  | 'footerByPrefix'
+  | 'footerSupport'
   | 'stateChecking'
   | 'stateCheckingDetail'
   | 'stateReady'
@@ -31,6 +35,7 @@ export type MessageKey =
   | 'libraryOpen'
   | 'libraryDelete'
   | 'back'
+  | 'backToMenu'
   | 'fieldTitle'
   | 'fieldTitlePh'
   | 'fieldObjective'
@@ -67,6 +72,8 @@ export type MessageKey =
   | 'truncated'
   | 'fileTruncated'
   | 'mergeTruncated'
+  | 'condensed'
+  | 'usedFallback'
   | 'missingQ'
   | 'warningsTitle'
   | 'errorEmpty'
@@ -108,13 +115,17 @@ export type MessageKey =
   | 'interpLoadedPack'
   | 'interpLoadedLib'
   | 'busyWorking'
+  | 'busyCondensing'
+  | 'busyCompiling'
+  | 'busyRetry'
   | 'reqTitle'
   | 'reqChrome'
   | 'reqRam'
   | 'reqStorage'
   | 'reqFlags'
   | 'reqAiSettings'
-  | 'docsLink';
+  | 'docsLink'
+  | 'englishContextNote';
 
 export type Messages = Record<MessageKey, string>;
 

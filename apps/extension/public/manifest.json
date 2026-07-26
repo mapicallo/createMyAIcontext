@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Create my AI Context",
-  "version": "0.4.0",
+  "version": "0.4.5",
   "description": "Turn notes or files into compact English AI context packs—merge, interpret & refine. On-device Chrome AI. UI: EN/ES/PT/FR/DE.",
   "action": {
     "default_title": "Create my AI Context",

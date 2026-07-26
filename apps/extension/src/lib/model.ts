@@ -28,6 +28,8 @@ type CreateOptions = {
   }) => void;
   signal?: AbortSignal;
   systemPrompt?: string;
+  temperature?: number;
+  topK?: number;
   initialPrompts?: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
 };
 
@@ -141,7 +143,12 @@ export async function promptOnce(
   userPrompt: string,
   signal?: AbortSignal,
 ): Promise<string> {
-  const session = await createSession({ systemPrompt, signal });
+  const session = await createSession({
+    systemPrompt,
+    signal,
+    temperature: 0.2,
+    topK: 3,
+  });
   try {
     return await session.prompt(userPrompt, { signal });
   } finally {

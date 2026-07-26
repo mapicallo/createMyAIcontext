@@ -4,29 +4,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Create my AI Context</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="./icons/icon48.png" />
     <link rel="stylesheet" href="./src/panel.css" />
   </head>
   <body>
-    <div class="app">
-      <header class="top">
-        <div class="brand">
-          <img class="brand-icon" src="./icons/icon48.png" alt="" width="28" height="28" />
-          <div>
-            <h1 data-i18n="appName">Create my AI Context</h1>
-            <p class="tagline" data-i18n="tagline">Compact English context packs — on your device</p>
+    <div class="app cmac-shell">
+      <header class="cmac-brand-header">
+        <div class="cmac-brand-row">
+          <div class="cmac-logo">
+            <div class="cmac-logo-icon" aria-hidden="true">
+              <img src="./icons/icon48.png" width="44" height="44" alt="" />
+            </div>
+            <div class="cmac-logo-text">
+              <h1 class="cmac-app-title" data-i18n="appName">Create my AI Context</h1>
+              <p class="cmac-app-subtitle" data-i18n="byAi4Context">By AI4Context</p>
+            </div>
           </div>
-        </div>
-        <div class="top-actions">
-          <label class="locale-label" for="locale-select">
+          <label class="cmac-lang-selector" for="locale-select">
+            <span class="cmac-lang-label" data-i18n="langLabel">Language</span>
             <select id="locale-select" aria-label="Language">
-              <option value="en">EN</option>
-              <option value="es">ES</option>
-              <option value="pt">PT</option>
-              <option value="fr">FR</option>
-              <option value="de">DE</option>
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="pt">Português</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
             </select>
           </label>
-          <a id="privacy-link" href="#" data-i18n="privacy">Privacy</a>
         </div>
       </header>
 
@@ -60,39 +63,48 @@
           data-i18n="docsLink"
           >Chrome Prompt API docs</a
         >
-        <p id="busy-strip" class="busy-strip" hidden data-i18n="busyWorking">Working on your device…</p>
       </section>
 
-      <main id="main" hidden>
+      <p id="busy-strip" class="busy-strip" hidden data-i18n="busyWorking">Working on your device…</p>
+
+      <main id="main" class="cmac-scroll" hidden>
         <section id="view-home" class="view">
           <h2 data-i18n="homeTitle">What do you want to do?</h2>
           <div class="cards">
             <button type="button" class="card" id="btn-from-text">
               <span class="card-title" data-i18n="fromText">From text</span>
-              <span class="card-desc" data-i18n="fromTextDesc">Paste notes and compile an efficient English context pack.</span>
+              <span class="card-desc" data-i18n="fromTextDesc"
+                >Paste notes and create a compact AI context.</span
+              >
             </button>
             <button type="button" class="card" id="btn-from-file">
               <span class="card-title" data-i18n="fromFile">From file</span>
-              <span class="card-desc" data-i18n="fromFileDesc">Upload TXT, MD, or PDF and compile a portable context pack.</span>
+              <span class="card-desc" data-i18n="fromFileDesc"
+                >Upload TXT, MD, PDF, ODT or DOCX and create a portable AI context.</span
+              >
             </button>
             <button type="button" class="card" id="btn-merge">
-              <span class="card-title" data-i18n="mergePacks">Merge packs</span>
-              <span class="card-desc" data-i18n="mergePacksDesc">Combine 2–5 saved or imported packs into one efficient context.</span>
+              <span class="card-title" data-i18n="mergePacks">Merge contexts</span>
+              <span class="card-desc" data-i18n="mergePacksDesc"
+                >Combine 2–5 saved or imported contexts into one efficient context.</span
+              >
             </button>
             <button type="button" class="card" id="btn-interpret">
               <span class="card-title" data-i18n="interpretRefine">Interpret & refine</span>
-              <span class="card-desc" data-i18n="interpretRefineDesc">See what an AI would understand, adjust in plain language, then build a pack.</span>
+              <span class="card-desc" data-i18n="interpretRefineDesc"
+                >See what an AI would understand, adjust in plain language, then build the context.</span
+              >
             </button>
           </div>
           <div class="library">
-            <h3 data-i18n="libraryTitle">Saved packs</h3>
-            <p id="library-empty" class="soon-line" data-i18n="libraryEmpty">No packs saved yet.</p>
+            <h3 data-i18n="libraryTitle">Saved contexts</h3>
+            <p id="library-empty" class="soon-line" data-i18n="libraryEmpty">No contexts saved yet.</p>
             <ul id="library-list" class="library-list" hidden></ul>
           </div>
         </section>
 
         <section id="view-compile" class="view" hidden>
-          <button type="button" class="linkish" id="back-home" data-i18n="back">Back</button>
+          <button type="button" class="linkish" id="back-home" data-i18n="backToMenu">Back to menu</button>
           <form id="compile-form" class="form">
             <label>
               <span data-i18n="fieldTitle">Context title</span>
@@ -124,14 +136,15 @@
             </div>
             <p id="form-error" class="error" hidden></p>
             <div class="form-actions">
-              <button type="submit" class="btn primary" id="compile-btn" data-i18n="compile">Create context pack</button>
+              <button type="submit" class="btn primary" id="compile-btn" data-i18n="compile">Create AI context</button>
+              <button type="button" class="btn secondary" id="menu-compile-btn" data-i18n="backToMenu">Back to menu</button>
               <button type="button" class="btn secondary" id="cancel-btn" hidden data-i18n="cancel">Cancel</button>
             </div>
           </form>
         </section>
 
         <section id="view-merge" class="view" hidden>
-          <button type="button" class="linkish" id="back-home-merge" data-i18n="back">Back</button>
+          <button type="button" class="linkish" id="back-home-merge" data-i18n="backToMenu">Back to menu</button>
           <form id="merge-form" class="form">
             <label>
               <span data-i18n="fieldTitle">Context title</span>
@@ -150,8 +163,8 @@
               <textarea id="merge-constraints" rows="2" maxlength="1000" data-i18n-placeholder="fieldConstraintsPh"></textarea>
             </label>
             <div class="merge-select">
-              <strong data-i18n="mergeSelect">Packs to merge</strong>
-              <p class="hint" data-i18n="mergeSelectHint">Select 2–5 packs…</p>
+              <strong data-i18n="mergeSelect">Contexts to merge</strong>
+              <p class="hint" data-i18n="mergeSelectHint">Select 2–5 contexts…</p>
               <p id="merge-empty" class="note" hidden data-i18n="mergeEmptyLib"></p>
               <ul id="merge-pack-list" class="merge-pack-list"></ul>
               <label class="file-label merge-import">
@@ -162,7 +175,8 @@
             </div>
             <p id="merge-error" class="error" hidden></p>
             <div class="form-actions">
-              <button type="submit" class="btn primary" id="merge-btn" data-i18n="mergeAction">Merge into one pack</button>
+              <button type="submit" class="btn primary" id="merge-btn" data-i18n="mergeAction">Merge into one context</button>
+              <button type="button" class="btn secondary" id="menu-merge-btn" data-i18n="backToMenu">Back to menu</button>
               <button type="button" class="btn secondary" id="merge-cancel-btn" hidden data-i18n="cancel">Cancel</button>
             </div>
           </form>
@@ -196,13 +210,14 @@
               <label>
                 <span data-i18n="interpFromLib">Or pick from library</span>
                 <select id="interp-lib-select">
-                  <option value="" data-i18n="interpLibPlaceholder">— choose a saved pack —</option>
+                  <option value="" data-i18n="interpLibPlaceholder">— choose a saved context —</option>
                 </select>
               </label>
               <p id="interp-load-status" class="note" hidden></p>
               <p id="interp-error" class="error" hidden></p>
               <div class="form-actions">
                 <button type="submit" class="btn primary" id="interp-btn" data-i18n="interpAction">Interpret</button>
+                <button type="button" class="btn secondary" id="menu-interp-btn" data-i18n="backToMenu">Back to menu</button>
                 <button type="button" class="btn secondary" id="interp-cancel-btn" hidden data-i18n="cancel">Cancel</button>
               </div>
             </form>
@@ -224,7 +239,8 @@
               <p id="refine-error" class="error" hidden></p>
               <div class="form-actions">
                 <button type="submit" class="btn secondary" id="refine-btn" data-i18n="interpSend">Apply change</button>
-                <button type="button" class="btn primary" id="interp-build-btn" data-i18n="interpBuildPack">Create efficient pack</button>
+                <button type="button" class="btn primary" id="interp-build-btn" data-i18n="interpBuildPack">Create efficient context</button>
+                <button type="button" class="btn secondary" id="menu-refine-btn" data-i18n="backToMenu">Back to menu</button>
                 <button type="button" class="btn secondary" id="refine-cancel-btn" hidden data-i18n="cancel">Cancel</button>
               </div>
             </form>
@@ -233,7 +249,8 @@
 
         <section id="view-result" class="view" hidden>
           <button type="button" class="linkish" id="back-compile" data-i18n="back">Back</button>
-          <h2 data-i18n="resultTitle">Your context pack</h2>
+          <h2 data-i18n="resultTitle">Your AI context</h2>
+          <p id="english-context-note" class="note english-context-note" hidden data-i18n="englishContextNote"></p>
           <p id="trunc-note" class="note" hidden></p>
           <div id="stats" class="stats"></div>
           <div class="tabs" role="tablist">
@@ -255,13 +272,42 @@
             <button type="button" class="btn secondary" id="download-btn" data-i18n="downloadJson">Download .aicontext.json</button>
             <button type="button" class="btn secondary" id="save-lib-btn" data-i18n="saveLibrary">Save to library</button>
             <button type="button" class="btn ghost" id="new-btn" data-i18n="newCompile">Create another</button>
+            <button type="button" class="btn secondary" id="menu-result-btn" data-i18n="backToMenu">Back to menu</button>
           </div>
           <p id="copy-toast" class="toast" hidden data-i18n="copied">Copied</p>
         </section>
       </main>
 
-      <footer class="foot">
-        <span id="version-strip">v0.4.0</span>
+      <div class="cmac-version-strip" id="version-strip">v0.4.5</div>
+
+      <footer class="cmac-site-footer" role="contentinfo">
+        <div class="cmac-site-footer-inner">
+          <div class="cmac-footer-brand-cluster">
+            <span class="cmac-footer-accent" aria-hidden="true"></span>
+            <img
+              class="cmac-footer-brand-img"
+              src="./icons/icon48.png"
+              width="32"
+              height="32"
+              alt=""
+            />
+          </div>
+          <span class="cmac-footer-by">
+            <span id="footer-by-prefix" data-i18n="footerByPrefix">by</span> <strong>AI4Context</strong>
+          </span>
+          <span class="cmac-footer-divider" aria-hidden="true"></span>
+          <a
+            class="cmac-footer-support"
+            id="footer-support"
+            href="https://www.ai4context.com/mission-support"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="footerSupport"
+            >Support</a
+          >
+          <span class="cmac-footer-divider" aria-hidden="true"></span>
+          <a href="#" id="privacy-link" class="cmac-footer-support" data-i18n="privacy">Privacy</a>
+        </div>
       </footer>
     </div>
     <script type="module" src="./src/panel.ts"></script>

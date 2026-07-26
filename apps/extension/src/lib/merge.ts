@@ -69,7 +69,20 @@ export async function mergePacks(
   ].join('\n');
 
   const raw = await promptOnce(SYSTEM_PROMPT, userPrompt, signal);
-  const parsed = safeParseJson<ModelCompilePayload>(raw);
+  let parsed = safeParseJson<ModelCompilePayload>(raw);
+  if (!parsed) {
+    const retryUser = [
+      userPrompt.slice(0, 8_000),
+      '',
+      'Previous merge attempt failed to return valid JSON. Return ONLY the JSON object now.',
+    ].join('\n');
+    const retryRaw = await promptOnce(
+      `Fix into ONE valid JSON object only (no markdown). Shape: {"constraints":string[],"facts":[{"key":string,"value":string,"weight":"high"|"medium"|"low"}],"narrative":string,"missingQuestions":string[],"warnings":string[]}`,
+      retryUser,
+      signal,
+    );
+    parsed = safeParseJson<ModelCompilePayload>(retryRaw);
+  }
   if (!parsed) throw new Error('INVALID_MODEL_JSON');
 
   const constraints = [...userConstraints, ...asStringArray(parsed.constraints)];

@@ -33,11 +33,12 @@ export async function interpretContext(
   const language = localeLanguageName(locale);
   const system = `You explain AI context to humans.
 Given a supposed context (notes, prompt, or structured pack), describe clearly what a typical LLM would understand and assume.
-Write the entire answer in ${language}.
+CRITICAL: Write the ENTIRE answer in ${language} (UI locale: ${locale}). Never switch to English unless the UI locale is English.
 Be honest about ambiguity, missing info, and likely misunderstandings.
 Do not output JSON. Use short paragraphs and optional bullets.`;
 
   const user = [
+    `UI language: ${language} (${locale}). Answer only in this language.`,
     'Describe what an AI would understand from this supposed context.',
     'Mention: main identity/topic, goals, constraints, important facts, and gaps.',
     '',
@@ -65,7 +66,7 @@ export async function refineInterpretation(
   const language = localeLanguageName(locale);
   const system = `You refine plain-language descriptions of AI context.
 The user wants to adjust what the AI should understand.
-Rewrite the FULL updated interpretation in ${language}.
+CRITICAL: Rewrite the FULL updated interpretation in ${language} (UI locale: ${locale}). Never switch to English unless the UI locale is English.
 Incorporate the latest instruction. Keep prior refinements unless the user undoes them.
 Do not output JSON or an English context pack—only the revised human-readable interpretation.`;
 
@@ -75,6 +76,7 @@ Do not output JSON or an English context pack—only the revised human-readable 
     : '(none)';
 
   const user = [
+    `UI language: ${language} (${locale}). Answer only in this language.`,
     'CURRENT INTERPRETATION:',
     currentInterpretation.trim(),
     '',
