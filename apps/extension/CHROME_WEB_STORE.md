@@ -1,6 +1,6 @@
 # Chrome Web Store — Create my AI Context
 
-> **Estado (2026-07-26):** paquete y pantallazos listos; publicación **pendiente del aumento de cupo** (límite 20 extensiones).  
+> **Estado (2026-07-28):** cupo CWS ampliado (+20). Paquete y pantallazos listos — **publicar ahora**.  
 > Checklist completo → [`docs/pendiente-publicacion-cws.md`](../docs/pendiente-publicacion-cws.md)  
 > ZIP: `releases/CreateMyAIContext-v0.4.5.zip` · Capturas: `C:\pantallazos\createMyAIContext\`
 
